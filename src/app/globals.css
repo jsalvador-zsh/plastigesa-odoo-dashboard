@@ -147,6 +147,7 @@
 
 body {
   font-family: 'Geist Mono', monospace
+  
 }
 
 /* Asegura que el sidebar y el contenido principal no se superpongan */
@@ -158,4 +159,7 @@ body {
 /* Estilos para el layout principal */
 .min-h-screen {
   min-height: 100vh;
+}
+html, body {
+  overflow-x: hidden;
 }

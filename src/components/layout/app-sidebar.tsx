@@ -140,7 +140,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={salesData.navMain} />
-        <NavQuickAccess items={salesData.quickAccess} />
+        {/* <NavQuickAccess items={salesData.quickAccess} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

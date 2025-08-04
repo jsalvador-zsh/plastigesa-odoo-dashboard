@@ -11,14 +11,14 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
             El Dashboard que guía tu negocio
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Nuestra plataforma está diseñada para ayudarte a visualizar, planificar y controlar todos tus procesos conectados con Odoo.
-          </p>
+            <p className="text-lg text-muted-foreground">
+            Plataforma centralizada para monitorear KPIs, analizar indicadores clave y tomar decisiones informadas, totalmente integrada con los módulos de Odoo.
+            </p>
           <ul className="space-y-2 text-sm">
             <li>✅ Conexión segura y autenticación</li>
             <li>📊 Reportes visuales en tiempo real</li>
             <li>🤝 Colaboración entre áreas y equipos</li>
-            <li>🎯 Integración total con módulos de Odoo</li>
+            <li>🎯 Integración a base de datos</li>
           </ul>
 
           <div className="flex gap-4 pt-4">
@@ -49,7 +49,7 @@ export default function Home() {
         <div className="text-center pb-6">
           <p className="text-lg text-foreground font-semibold">Tecnologías utilizadas</p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-10 px-6 animate-pulse-slow">
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 md:px-6 animate-pulse-slow">
           <Image src="/logos/nextjs.svg" alt="Next.js" width={20} height={20} style={{ height: '20', width: '40' }}/>
           <Image src="/logos/odoo.svg" alt="Odoo" width={20} height={20} style={{ height: '20', width: '40' }} />
           <Image src="/logos/clerk.svg" alt="Clerk" width={20} height={20} style={{ height: '20', width: '40' }} />
