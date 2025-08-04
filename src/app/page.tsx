@@ -50,12 +50,12 @@ export default function Home() {
           <p className="text-lg text-foreground font-semibold">Tecnologías utilizadas</p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-10 px-6 animate-pulse-slow">
-          <Image src="/logos/nextjs.svg" alt="Next.js" width={40} height={20} style={{ height: 'auto', width: 'auto' }}/>
-          <Image src="/logos/odoo.svg" alt="Odoo" width={40} height={20} style={{ height: 'auto', width: 'auto' }} />
-          <Image src="/logos/clerk.svg" alt="Clerk" width={40} height={20} style={{ height: 'auto', width: 'auto' }} />
-          <Image src="/logos/shadcn.svg" alt="ShadCN" width={40} height={20} style={{ height: 'auto', width: 'auto' }} />
-          <Image src="/logos/tailwind.svg" alt="TailwindCSS" width={40} height={20} style={{ height: 'auto', width: 'auto' }} />
-          <Image src="/logos/vercel.svg" alt="Vercel" width={40} height={20} style={{ height: 'auto', width: 'auto' }} />
+          <Image src="/logos/nextjs.svg" alt="Next.js" width={20} height={20} style={{ height: '20', width: '40' }}/>
+          <Image src="/logos/odoo.svg" alt="Odoo" width={20} height={20} style={{ height: '20', width: '40' }} />
+          <Image src="/logos/clerk.svg" alt="Clerk" width={20} height={20} style={{ height: '20', width: '40' }} />
+          <Image src="/logos/shadcn.svg" alt="ShadCN" width={20} height={20} style={{ height: '20', width: '40' }} />
+          <Image src="/logos/tailwind.svg" alt="TailwindCSS" width={20} height={40} style={{ height: '20', width: '40' }} />
+          <Image src="/logos/vercel.svg" alt="Vercel" width={20} height={20} style={{ height: '20', width: '40' }} />
         </div>
       </section>
 
