@@ -31,7 +31,7 @@ export default function Home() {
         </div>
 
         {/* Imagen del dashboard */}
-        <div className="rounded-xl overflow-hidden border shadow-md">
+        <div className="rounded-lg overflow-hidden border shadow-md">
           <Image
             src="/mockup.png"
             alt="Ejemplo de dashboard"
