@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
     Card,
     CardHeader,
@@ -31,7 +31,7 @@ import {
     PaginationItem,
     PaginationLink,
 } from "@/components/ui/pagination"
-import { ChevronLeftIcon, ChevronRightIcon, Divide } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, RefreshCw, AlertCircle } from "lucide-react"
 import {
     ChartContainer,
     ChartTooltipContent,
@@ -43,62 +43,95 @@ import {
     ToggleGroup,
     ToggleGroupItem,
 } from "@/components/ui/toggle-group"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-interface Customer {
-    customer_name: string
-    total_purchased: number
-}
+// Imports de tipos y hooks personalizados
+import type { TimeRange, TopLimit } from "@/types/dashboard"
+import { useCustomers } from "@/hooks/useCustomers"
+import { 
+    formatCurrency, 
+    formatCustomerName, 
+    RANGE_OPTIONS, 
+    LIMIT_OPTIONS,
+    CHART_COLORS,
+    validateChartData,
+    getCurrentPeriodDescription 
+} from "@/utils/chartUtils"
 
 export default function TopCustomersChart() {
-    const [data, setData] = useState<Customer[]>([])
-    const [range, setRange] = useState("month")
-    const [limit, setLimit] = useState("10")
+    const [range, setRange] = useState<TimeRange>("month")
+    const [limit, setLimit] = useState<TopLimit>("10")
     const [page, setPage] = useState(1)
-    const [totalPages, setTotalPages] = useState(1)
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const res = await fetch(
-                `/api/reports/top-customers?range=${range}&limit=${limit}&page=${page}`
-            )
-            const json = await res.json()
-            if (json.success) {
-                setData(json.data)
-                setTotalPages(json.meta.totalPages)
-            }
-        }
-
-        fetchData()
-    }, [range, limit, page])
+    const { data, loading, error, totalPages, refetch } = useCustomers({
+        range,
+        limit,
+        page
+    })
 
     const handleLimitChange = (value: string) => {
-        setLimit(value)
+        setLimit(value as TopLimit)
         setPage(1)
     }
 
-    const handleRangeChange = (value: string) => {
-        setRange(value)
+    const handleRangeChange = (value: string | TimeRange) => {
+        setRange(value as TimeRange)
         setPage(1)
     }
 
-    const chartConfig = {
+    const chartConfig: ChartConfig = {
         total_purchased: {
-            color: "var(--chart-3)",
+            color: CHART_COLORS.accent,
             label: "Total comprado por cliente",
         },
-    } satisfies ChartConfig
+    }
 
-    const rangeOptions = [
-        { value: "month", label: "Mes" },
-        { value: "quarter", label: "Trim." },
-        { value: "year", label: "Año" },
-    ]
+    // Loading state
+    if (loading) {
+        return (
+            <Card className="@container/card">
+                <CardHeader>
+                    <CardTitle>Clientes Destacados</CardTitle>
+                    <CardDescription>Cargando datos...</CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center h-[250px]">
+                    <RefreshCw className="animate-spin h-8 w-8 text-muted-foreground" />
+                </CardContent>
+            </Card>
+        )
+    }
 
-    const limitOptions = [
-        { value: "10", label: "Top 10" },
-        { value: "30", label: "Top 30" },
-        { value: "50", label: "Top 50" },
-    ]
+    // Error state
+    if (error) {
+        return (
+            <Card className="@container/card">
+                <CardHeader>
+                    <CardTitle>Clientes Destacados</CardTitle>
+                    <CardDescription>Error al cargar los datos</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                            {error}
+                        </AlertDescription>
+                    </Alert>
+                    <Button 
+                        onClick={refetch} 
+                        variant="outline" 
+                        className="mt-4"
+                    >
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Reintentar
+                    </Button>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    // Validar datos del gráfico
+    const isValidData = validateChartData(data)
 
     return (
         <div className="space-y-4">
@@ -107,10 +140,10 @@ export default function TopCustomersChart() {
                     <CardTitle>Clientes Destacados</CardTitle>
                     <CardDescription>
                         <span className="hidden @[540px]/card:block">
-                            Los clientes con mayores compras en el período seleccionado
+                            Los clientes con mayores compras en {getCurrentPeriodDescription(range).toLowerCase()}
                         </span>
                         <span className="@[540px]/card:hidden">
-                            Mayores compras por cliente
+                            Período: {getCurrentPeriodDescription(range)}
                         </span>
                     </CardDescription>
                     <CardAction>
@@ -122,7 +155,7 @@ export default function TopCustomersChart() {
                                 variant="outline"
                                 className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
                             >
-                                {rangeOptions.map((option) => (
+                                {RANGE_OPTIONS.map((option) => (
                                     <ToggleGroupItem key={option.value} value={option.value}>
                                         {option.label}
                                     </ToggleGroupItem>
@@ -138,7 +171,7 @@ export default function TopCustomersChart() {
                                     <SelectValue placeholder="Seleccionar rango" />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
-                                    {rangeOptions.map((option) => (
+                                    {RANGE_OPTIONS.map((option) => (
                                         <SelectItem key={option.value} value={option.value} className="rounded-lg">
                                             {option.label}
                                         </SelectItem>
@@ -151,81 +184,94 @@ export default function TopCustomersChart() {
                                     <SelectValue placeholder="Top" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {limitOptions.map((option) => (
+                                    {LIMIT_OPTIONS.map((option) => (
                                         <SelectItem key={option.value} value={option.value}>
                                             {option.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
+
+                            <Button
+                                onClick={refetch}
+                                variant="outline"
+                                size="sm"
+                                disabled={loading}
+                                className="ml-auto"
+                            >
+                                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                            </Button>
                         </div>
                     </CardAction>
                 </CardHeader>
 
                 <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-                    <ChartContainer
-                        config={chartConfig}
-                        className="aspect-auto h-[250px] w-full"
-                    >
-                        <BarChart
-                            data={data}
-                            width={800}
-                            height={400}
-                            margin={{
-                                top: 170,
-                            }}
+                    {isValidData ? (
+                        <ChartContainer
+                            config={chartConfig}
+                            className="aspect-auto h-[250px] w-full"
                         >
-                            <XAxis
-                                dataKey="customer_name"
-                                tickMargin={10}
-                                tickLine={false}
-                                axisLine={false}
-                                tickFormatter={(value) => value.slice(0, 3)}
-                            />
-                            <Tooltip
-                                cursor={false}
-                                content={
-                                    <ChartTooltipContent
-                                        formatter={(value) => {
-                                            let num: number
-                                            if (typeof value === "number") {
-                                                num = value
-                                            } else if (Array.isArray(value)) {
-                                                num = parseFloat(value.join(""))
-                                            } else {
-                                                num = parseFloat(value)
-                                            }
-                                            return isNaN(num) ? "S/ 0.00" : `S/ ${num.toFixed(2)}`
-                                        }}
-                                    />
-                                }
-                            />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            <Bar
-                                dataKey="total_purchased"
-                                fill={chartConfig.total_purchased.color}
-                                radius={8}
+                            <BarChart
+                                data={data}
+                                width={800}
+                                height={400}
+                                margin={{
+                                    top: 20,
+                                }}
                             >
-                                <LabelList
-                                    dataKey="total_purchased"
-                                    position="top"
-                                    className="fill-foreground"
-                                    fontSize={12}
-                                    formatter={(value: any) => {
-                                        let num: number
-                                        if (typeof value === "number") {
-                                            num = value
-                                        } else if (Array.isArray(value)) {
-                                            num = parseFloat(value.join(""))
-                                        } else {
-                                            num = parseFloat(value)
-                                        }
-                                        return isNaN(num) ? "PEN 0.00" : `PEN ${num.toFixed(2)}`
-                                    }}
+                                <XAxis
+                                    dataKey="customer_name"
+                                    tickMargin={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(value) => formatCustomerName(value)}
                                 />
-                            </Bar>
-                        </BarChart>
-                    </ChartContainer>
+                                <Tooltip
+                                    cursor={false}
+                                    content={
+                                        <ChartTooltipContent
+                                            formatter={(value, name, props) => {
+                                                const customer = props.payload
+                                                const formattedValue = formatCurrency(value, "S/")
+                                                const invoiceCount = customer?.invoice_count || 0
+                                                const refundCount = customer?.refund_count || 0
+                                                
+                                                return [
+                                                    formattedValue,
+                                                    <div key="details" className="text-xs text-muted-foreground mt-1">
+                                                        Facturas: {invoiceCount}
+                                                        {refundCount > 0 && ` | Notas crédito: ${refundCount}`}
+                                                    </div>
+                                                ]
+                                            }}
+                                        />
+                                    }
+                                />
+                                <ChartLegend content={<ChartLegendContent />} />
+                                <Bar
+                                    dataKey="total_purchased"
+                                    fill={chartConfig.total_purchased.color}
+                                    radius={8}
+                                >
+                                    <LabelList
+                                        dataKey="total_purchased"
+                                        position="top"
+                                        className="fill-foreground"
+                                        fontSize={12}
+                                        formatter={(value: any) => formatCurrency(value)}
+                                    />
+                                </Bar>
+                            </BarChart>
+                        </ChartContainer>
+                    ) : (
+                        <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+                            <div className="text-center">
+                                <AlertCircle className="h-12 w-12 mx-auto mb-4" />
+                                <p>No hay datos disponibles para mostrar</p>
+                                <p className="text-sm">Intenta cambiar los filtros o el rango de tiempo</p>
+                            </div>
+                        </div>
+                    )}
 
                     {totalPages > 1 && (
                         <Pagination className="mt-4 justify-end">
@@ -234,6 +280,7 @@ export default function TopCustomersChart() {
                                     <PaginationLink
                                         onClick={() => page > 1 && setPage(page - 1)}
                                         aria-disabled={page === 1}
+                                        className="cursor-pointer"
                                     >
                                         <ChevronLeftIcon />
                                     </PaginationLink>
@@ -246,7 +293,9 @@ export default function TopCustomersChart() {
                                 <PaginationItem>
                                     <PaginationLink
                                         onClick={() => page < totalPages && setPage(page + 1)}
-                                        aria-disabled={page === totalPages}>
+                                        aria-disabled={page === totalPages}
+                                        className="cursor-pointer"
+                                    >
                                         <ChevronRightIcon />
                                     </PaginationLink>
                                 </PaginationItem>
@@ -256,6 +305,5 @@ export default function TopCustomersChart() {
                 </CardContent>
             </Card>
         </div>
-
     )
 }
