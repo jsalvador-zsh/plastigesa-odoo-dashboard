@@ -12,7 +12,7 @@ export default function DashboardPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <SiteHeader title="Dashboard de ventas (hoy)"/>
+        <SiteHeader title="Ventas (hoy)"/>
         <div className="flex flex-1 flex-col px-4 lg:px-6">
           <div className="grid gap-4 py-4">
             <DailySalesSummary />

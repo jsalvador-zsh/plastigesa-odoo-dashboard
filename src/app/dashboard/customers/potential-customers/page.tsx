@@ -10,7 +10,7 @@ export default async function DashboardPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <SiteHeader title="Dashboard de clientes potenciales" />
+        <SiteHeader title="Potenciales" />
         <div className="flex flex-1 flex-col px-4 lg:px-6">
           
         </div>

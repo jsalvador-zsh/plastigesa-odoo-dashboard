@@ -45,15 +45,15 @@ const salesData = {
       icon: Users,
       items: [
         {
-          title: "Reporte de Clientes",
+          title: "Reporte",
           url: "/dashboard/customers/report-customers",
         },
         {
-          title: "Análisis de Clientes",
+          title: "Análisis",
           url: "/dashboard/customers/customer-analytics",
         },
         {
-          title: "Clientes Potenciales",
+          title: "Potenciales",
           url: "/dashboard/customers/potential-customers",
         }
       ],
