@@ -1,105 +1,69 @@
-import { NextResponse } from "next/server"
-import db from "@/lib/db"
+// app/api/reports/customer-stats/route.ts
+import { NextRequest, NextResponse } from "next/server"
+import { StatsService } from "@/services/statsService"
+import type { TimeRange } from "@/types/dashboard"
+import type { CustomerStats } from "@/types/stats"
 
-export async function GET() {
+function validateTimeRange(range: string | null): TimeRange {
+  if (range === "month" || range === "quarter" || range === "year") {
+    return range
+  }
+  return "month" // default
+}
+
+export async function GET(req: NextRequest) {
   try {
-    // Obtener el total de clientes (sin filtro de tiempo)
-    const totalCustomersResult = await db.query(
-      `SELECT COUNT(DISTINCT id) AS total FROM res_partner`
+    const { searchParams } = new URL(req.url)
+    const range = validateTimeRange(searchParams.get("range"))
+    
+    console.log("Stats API called with range:", range) // Debug
+    
+    // Obtener condiciones de fecha
+    const dateConditions = StatsService.getDateConditions(range)
+    console.log("Date conditions:", dateConditions) // Debug
+    
+    // Obtener todas las estadísticas en paralelo
+    const [
+      totalCustomers,
+      currentPeriodCustomers,
+      previousPeriodCustomers,
+      topCustomer,
+      ticketStats,
+      newCustomers
+    ] = await Promise.all([
+      StatsService.getTotalActiveCustomers(),
+      StatsService.getCustomersByPeriod(dateConditions.current),
+      StatsService.getCustomersByPeriod(dateConditions.previous),
+      StatsService.getTopCustomer(dateConditions.current),
+      StatsService.getTicketStats(dateConditions.current),
+      StatsService.getNewCustomers(dateConditions.current)
+    ])
+    
+    // Calcular cambio porcentual
+    const totalCustomersChange = StatsService.calculatePercentageChange(
+      previousPeriodCustomers,
+      currentPeriodCustomers
     )
-    const totalCustomers = parseInt(totalCustomersResult.rows[0].total, 10)
-
-    // Obtener el total de clientes del mes anterior para calcular el cambio
-    const lastMonthCustomersResult = await db.query(
-      `SELECT COUNT(DISTINCT partner_id) AS count 
-       FROM account_move 
-       WHERE type = 'out_invoice' 
-         AND state = 'posted'
-         AND invoice_date >= CURRENT_DATE - INTERVAL '2 months'
-         AND invoice_date < CURRENT_DATE - INTERVAL '1 month'`
-    )
-    const lastMonthCustomers = parseInt(lastMonthCustomersResult.rows[0].count, 10)
-
-    // Obtener el total de clientes del mes actual
-    const currentMonthCustomersResult = await db.query(
-      `SELECT COUNT(DISTINCT partner_id) AS count 
-       FROM account_move 
-       WHERE type = 'out_invoice' 
-         AND state = 'posted'
-         AND invoice_date >= CURRENT_DATE - INTERVAL '1 month'`
-    )
-    const currentMonthCustomers = parseInt(currentMonthCustomersResult.rows[0].count, 10)
-
-    // Calcular cambios porcentuales
-    const totalCustomersChange = calculatePercentageChange(
-      lastMonthCustomers, 
-      currentMonthCustomers
-    )
-
-    // Obtener estadísticas del cliente top
-    const topCustomerResult = await db.query(
-      `SELECT 
-         rp.name AS customer_name,
-         SUM(am.amount_total_signed) AS total_purchased
-       FROM account_move am
-       JOIN res_partner rp ON am.partner_id = rp.id
-       WHERE am.type = 'out_invoice'
-         AND am.state = 'posted'
-         AND am.invoice_date >= CURRENT_DATE - INTERVAL '1 month'
-       GROUP BY rp.name
-       ORDER BY total_purchased DESC
-       LIMIT 1`
-    )
-
-    const topCustomer = topCustomerResult.rows[0] || {
-      customer_name: "N/A",
-      total_purchased: 0
+    
+    const periodDescription = StatsService.getPeriodDescription(range)
+    
+    const stats: CustomerStats = {
+      totalCustomers,
+      totalCustomersChange,
+      topCustomer,
+      avgTicket: ticketStats.avgTicket,
+      newCustomers,
+      invoiceCount: ticketStats.invoiceCount,
+      period: periodDescription
     }
-
-    // Obtener ticket promedio
-    const avgTicketResult = await db.query(
-      `SELECT 
-         AVG(amount_total_signed) AS avg_ticket,
-         COUNT(id) AS invoice_count
-       FROM account_move
-       WHERE type = 'out_invoice'
-         AND state = 'posted'
-         AND invoice_date >= CURRENT_DATE - INTERVAL '1 month'`
-    )
-
-    const avgTicket = parseFloat(avgTicketResult.rows[0].avg_ticket) || 0
-    const invoiceCount = parseInt(avgTicketResult.rows[0].invoice_count, 10)
-
-    // Obtener nuevos clientes (primer compra en últimos 15 días)
-    const newCustomersResult = await db.query(
-      `SELECT COUNT(DISTINCT partner_id) AS count
-       FROM account_move
-       WHERE type = 'out_invoice'
-         AND state = 'posted'
-         AND invoice_date >= CURRENT_DATE - INTERVAL '15 days'
-         AND partner_id NOT IN (
-           SELECT DISTINCT partner_id 
-           FROM account_move 
-           WHERE invoice_date < CURRENT_DATE - INTERVAL '15 days'
-             AND type = 'out_invoice'
-         )`
-    )
-    const newCustomers = parseInt(newCustomersResult.rows[0].count, 10)
-
+    
+    console.log("Final stats:", stats) // Debug
+    
     return NextResponse.json({
       success: true,
-      data: {
-        totalCustomers,
-        totalCustomersChange,
-        topCustomer: {
-          name: topCustomer.customer_name,
-          amount: topCustomer.total_purchased
-        },
-        avgTicket,
-        newCustomers,
-        invoiceCount
-      }
+      data: stats
     })
+    
   } catch (error) {
     console.error("Error fetching customer stats:", error)
     return NextResponse.json(
@@ -107,9 +71,4 @@ export async function GET() {
       { status: 500 }
     )
   }
-}
-
-function calculatePercentageChange(previous: number, current: number): number {
-  if (previous === 0) return current > 0 ? 100 : 0
-  return ((current - previous) / previous) * 100
 }

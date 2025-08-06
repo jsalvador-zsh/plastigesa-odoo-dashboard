@@ -1,62 +1,57 @@
+// app/api/reports/inactive-customers/route.ts
 import { NextRequest, NextResponse } from "next/server"
-import db from "@/lib/db"
+import { InactiveCustomersService } from "@/services/inactiveCustomersService"
+import type { InactivityPeriod } from "@/types/inactive"
+
+function validatePage(page: string | null): number {
+  const parsed = parseInt(page || "1", 10)
+  return parsed > 0 ? parsed : 1
+}
+
+function validateLimit(limit: string | null): number {
+  const parsed = parseInt(limit || "10", 10)
+  return [10, 30, 50, 100].includes(parsed) ? parsed : 10
+}
+
+function validatePeriod(period: string | null): InactivityPeriod {
+  if (period === "3_months" || period === "6_months" || period === "1_year") {
+    return period
+  }
+  return "3_months" // default
+}
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const page = parseInt(searchParams.get("page") || "1", 10)
-  const limit = parseInt(searchParams.get("limit") || "10", 10)
-  const offset = (page - 1) * limit
-  const all = searchParams.get("all") === "true"
-
   try {
-    // Total sin paginar
-    const totalResult = await db.query(`
-      SELECT COUNT(*) AS total
-      FROM (
-        SELECT rp.id
-        FROM res_partner rp
-        JOIN account_move am ON am.partner_id = rp.id
-        WHERE am.type = 'out_invoice'
-          AND am.state = 'posted'
-        GROUP BY rp.id
-        HAVING MAX(am.invoice_date) <= CURRENT_DATE - INTERVAL '3 months'
-      ) AS sub
-    `)
+    const { searchParams } = new URL(req.url)
+    
+    const page = validatePage(searchParams.get("page"))
+    const limit = validateLimit(searchParams.get("limit"))
+    const period = validatePeriod(searchParams.get("period"))
+    const all = searchParams.get("all") === "true"
+    
+    console.log("Inactive customers API called:", { page, limit, period, all }) // Debug
 
-    const total = parseInt(totalResult.rows[0].total, 10)
-    const totalPages = Math.ceil(total / limit)
+    const result = await InactiveCustomersService.getInactiveCustomers(
+      period, 
+      page, 
+      limit, 
+      all
+    )
 
-    const baseQuery = `
-      SELECT
-        rp.name AS customer_name,
-        COUNT(am.id) AS invoice_count,
-        SUM(am.amount_total_signed) AS total_purchased,
-        MAX(am.invoice_date) AS last_purchase
-      FROM res_partner rp
-      JOIN account_move am ON am.partner_id = rp.id
-      WHERE am.type = 'out_invoice'
-        AND am.state = 'posted'
-      GROUP BY rp.id, rp.name
-      HAVING MAX(am.invoice_date) <= CURRENT_DATE - INTERVAL '3 months'
-      ORDER BY last_purchase ASC
-    `
-
-    const result = all
-      ? await db.query(baseQuery)
-      : await db.query(`${baseQuery} OFFSET $1 LIMIT $2`, [offset, limit])
-
-    return NextResponse.json({
+    const response = {
       success: true,
-      data: result.rows,
-      meta: all
-        ? undefined
-        : {
-            total,
-            totalPages,
-            currentPage: page,
-            perPage: limit,
-          },
-    })
+      data: result.data,
+      meta: result.meta,
+      period_info: {
+        period,
+        description: InactiveCustomersService.getPeriodDescription(period)
+      }
+    }
+
+    console.log("Inactive customers result:", { count: result.data.length, meta: result.meta }) // Debug
+
+    return NextResponse.json(response)
+    
   } catch (error) {
     console.error("Error fetching inactive customers:", error)
     return NextResponse.json(
