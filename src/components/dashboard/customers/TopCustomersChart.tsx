@@ -20,9 +20,7 @@ import {
     BarChart,
     Bar,
     XAxis,
-    YAxis,
     Tooltip,
-    CartesianGrid,
     LabelList,
 } from "recharts"
 import {

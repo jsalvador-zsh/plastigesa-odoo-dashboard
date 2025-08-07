@@ -1,4 +1,4 @@
-// src/components/sales/TicketEvolutionChart.tsx
+// src/components/sales/SalesEvolutionChart.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -17,37 +17,32 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
-  ReferenceLine
+  Legend
 } from "recharts"
 import {
   RefreshCw,
   AlertCircle,
-  BarChart3,
-  TrendingUp,
-  TrendingDown
+  TrendingUp
 } from "lucide-react"
 
 import type { TimeRange } from "@/types/sales"
 import { formatCurrency } from "@/utils/chartUtils"
 
-interface TicketData {
+interface EvolutionData {
   period: number
+  total_orders: number
+  total_amount: number
   avg_ticket: number
-  median_ticket: number
-  min_ticket: number
-  max_ticket: number
 }
 
 const RANGE_OPTIONS = [
@@ -56,8 +51,8 @@ const RANGE_OPTIONS = [
   { value: "year", label: "Por mes (año actual)" }
 ]
 
-export default function TicketEvolutionChart() {
-  const [data, setData] = useState<TicketData[]>([])
+export default function SalesEvolutionChart() {
+  const [data, setData] = useState<EvolutionData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [range, setRange] = useState<TimeRange>("month")
@@ -67,7 +62,7 @@ export default function TicketEvolutionChart() {
       setLoading(true)
       setError(null)
 
-      const res = await fetch(`/api/reports/ticket-evolution?range=${range}`)
+      const res = await fetch(`/api/reports/sales-evolution?range=${range}`)
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
@@ -99,36 +94,23 @@ export default function TicketEvolutionChart() {
     return new Date(0, period - 1).toLocaleString('es', { month: 'short' })
   }
 
-  // Calcular promedio general y tendencia
-  const avgTicket = data.length > 0 
-    ? data.reduce((sum, item) => sum + item.avg_ticket, 0) / data.length 
-    : 0
-
-  const latestTicket = data.length > 0 ? data[data.length - 1]?.avg_ticket : 0
-  const previousTicket = data.length > 1 ? data[data.length - 2]?.avg_ticket : 0
-  const ticketTrend = previousTicket > 0 ? ((latestTicket - previousTicket) / previousTicket) * 100 : 0
-
-  // Custom tooltip
+  // Custom tooltip para el gráfico
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const data = payload[0]?.payload
       return (
         <div className="bg-background border rounded-lg p-3 shadow-md">
-          <p className="font-medium mb-2">{formatXAxis(label)}</p>
+          <p className="font-medium">{formatXAxis(label)}</p>
           <div className="space-y-1">
             {payload.map((entry: any, index: number) => (
               <div key={index} style={{ color: entry.color }} className="text-sm">
                 <span className="font-medium">{entry.name}: </span>
-                {formatCurrency(entry.value, "S/")}
+                {entry.dataKey.includes('amount') ? (
+                  formatCurrency(entry.value, "S/")
+                ) : (
+                  `${entry.value} ${entry.dataKey.includes('orders') ? 'órdenes' : 'S/'}`
+                )}
               </div>
             ))}
-            {data && (
-              <div className="text-xs text-muted-foreground border-t pt-1 space-y-1">
-                <div>Mínimo: {formatCurrency(data.min_ticket, "S/")}</div>
-                <div>Máximo: {formatCurrency(data.max_ticket, "S/")}</div>
-                <div>Mediana: {formatCurrency(data.median_ticket, "S/")}</div>
-              </div>
-            )}
           </div>
         </div>
       )
@@ -143,8 +125,8 @@ export default function TicketEvolutionChart() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Evolución del Ticket Promedio
+                <TrendingUp className="h-5 w-5" />
+                Evolución de Ventas
               </CardTitle>
               <CardDescription>Cargando evolución...</CardDescription>
             </div>
@@ -152,7 +134,7 @@ export default function TicketEvolutionChart() {
           </div>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[350px] w-full" />
+          <Skeleton className="h-[300px] w-full" />
         </CardContent>
       </Card>
     )
@@ -163,8 +145,8 @@ export default function TicketEvolutionChart() {
       <Card className="@container/card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Evolución del Ticket Promedio
+            <TrendingUp className="h-5 w-5" />
+            Evolución de Ventas
           </CardTitle>
           <CardDescription>Error al cargar los datos</CardDescription>
         </CardHeader>
@@ -185,36 +167,15 @@ export default function TicketEvolutionChart() {
   return (
     <Card className="@container/card">
       <CardHeader>
-        <div className="flex flex-col gap-4 @md/card:flex-row @md/card:items-start @md/card:justify-between">
-          <div className="space-y-2">
+        <div className="flex flex-col gap-4 @md/card:flex-row @md/card:items-center @md/card:justify-between">
+          <div>
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Evolución del Ticket Promedio
+              <TrendingUp className="h-5 w-5" />
+              Evolución de Ventas
             </CardTitle>
             <CardDescription>
-              Tendencia del valor promedio por orden de venta
+              Ventas confirmadas por {range === 'month' ? 'día' : range === 'quarter' ? 'semana' : 'mes'}
             </CardDescription>
-            
-            {/* Métricas rápidas */}
-            <div className="flex items-center gap-4 pt-2">
-              <div className="text-sm">
-                <span className="text-muted-foreground">Promedio general: </span>
-                <span className="font-medium">{formatCurrency(avgTicket, "S/")}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                {ticketTrend >= 0 ? (
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                )}
-                <Badge 
-                  variant={ticketTrend >= 0 ? "default" : "destructive"}
-                  className="text-xs"
-                >
-                  {ticketTrend >= 0 ? '+' : ''}{ticketTrend.toFixed(1)}%
-                </Badge>
-              </div>
-            </div>
           </div>
           
           <div className="flex items-center gap-4">
@@ -239,10 +200,16 @@ export default function TicketEvolutionChart() {
       </CardHeader>
 
       <CardContent>
-        <div className="h-[350px] w-full">
+        <div className="h-[400px] w-full">
           {data.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+              <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                 <XAxis 
                   dataKey="period" 
@@ -258,41 +225,31 @@ export default function TicketEvolutionChart() {
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(value) => {
-                    if (value >= 1000) return `S/ ${(value / 1000).toFixed(0)}K`
-                    return `S/ ${value}`
+                    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
+                    if (value >= 1000) return `${(value / 1000).toFixed(0)}K`
+                    return value.toString()
                   }}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 
-                {/* Línea de referencia del promedio */}
-                <ReferenceLine 
-                  y={avgTicket} 
-                  stroke="#6b7280" 
-                  strokeDasharray="5 5"
-                  label={{ value: "Promedio", position: "insideTopRight" }}
-                />
-                
-                <Line
+                <Area
                   type="monotone"
-                  dataKey="avg_ticket"
-                  stroke="var(--chart-3)"
-                  strokeWidth={3}
-                  dot={{ fill: "var(--chart-3)", strokeWidth: 2, r: 2 }}
-                  activeDot={{ r: 2, stroke: "var(--chart-3)", strokeWidth: 2 }}
-                  name="Ticket Promedio"
-                />
-                
-                <Line
-                  type="monotone"
-                  dataKey="median_ticket"
-                  stroke="var(--chart-4)"
+                  dataKey="total_amount"
+                  stroke="var(--chart-1)"
+                  fill="url(#salesGradient)"
+                  name="Monto total"
                   strokeWidth={2}
-                  dot={{ fill: "var(--chart-4)", strokeWidth: 2, r: 2 }}
-                  activeDot={{ r: 2, stroke: "var(--chart-4)", strokeWidth: 2 }}
-                  name="Mediana"
                 />
-              </LineChart>
+                <Area
+                  type="monotone"
+                  dataKey="total_orders"
+                  stroke="var(--chart-2)"
+                  fill="url(#quotationsGradient)"
+                  name="N° órdenes"
+                  strokeWidth={2}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center">
