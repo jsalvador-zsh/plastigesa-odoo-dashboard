@@ -1,4 +1,4 @@
-// app/api/reports/sales-summary/route.ts
+// app/api/reports/sales-stats/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { SalesService } from "@/services/salesService"
 import type { TimeRange } from "@/types/sales"
@@ -15,19 +15,19 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const range = validateTimeRange(searchParams.get("range"))
     
-    console.log("Sales summary API called:", { range })
+    console.log("Sales stats API called:", { range })
 
-    const summary = await SalesService.getSalesSummary(range)
+    const stats = await SalesService.getSalesStats(range)
 
     return NextResponse.json({
       success: true,
-      data: summary
+      data: stats
     })
     
   } catch (error) {
-    console.error("Error fetching sales summary:", error)
+    console.error("Error fetching sales stats:", error)
     return NextResponse.json(
-      { success: false, error: "Error al obtener resumen de ventas" },
+      { success: false, error: "Error al obtener estadísticas de ventas" },
       { status: 500 }
     )
   }
