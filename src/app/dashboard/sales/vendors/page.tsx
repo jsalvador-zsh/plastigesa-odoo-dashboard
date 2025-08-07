@@ -3,10 +3,10 @@ import { AppSidebar } from "@/components/layout/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { SiteHeader } from "@/components/layout/site-header"
 import SalesTeamStats from "@/components/dashboard/sales/SalesTeamStats"
-import SalesRankingChart from "@/components/dashboard/sales/SalesRankingChart"
 import SalesDistributionChart from "@/components/dashboard/sales/SalesDistributionChart"
 import SalesPerformanceTable from "@/components/dashboard/sales/SalesPerformanceTable"
 import SalesTargetsTable from "@/components/dashboard/sales/SalesTargetsvsResultsTable"
+import POSSalesByPersonChart from "@/components/dashboard/sales/POSSalesByPersonChart"
 
 export default function DashboardPage() {
   return (
@@ -20,7 +20,7 @@ export default function DashboardPage() {
                 <SalesTeamStats />
                 <SalesPerformanceTable />
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <SalesRankingChart />
+                  <POSSalesByPersonChart />
                   <SalesDistributionChart />
                 </div>
                 <SalesTargetsTable />

@@ -114,7 +114,7 @@ export default function SalesOrdersTable() {
   // Función para obtener badge del estado
   const getStateBadge = (orderState: SaleOrderState) => {
     const stateConfig = {
-      draft: { label: "Borrador", variant: "secondary" as const, icon: FileText },
+      draft: { label: "Cotización", variant: "secondary" as const, icon: FileText },
       sent: { label: "Enviada", variant: "outline" as const, icon: Send },
       sale: { label: "Confirmada", variant: "default" as const, icon: CheckCircle },
       done: { label: "Finalizada", variant: "default" as const, icon: CheckCircle },

@@ -64,7 +64,7 @@ const salesData = {
       icon: ShoppingCart,
       items: [
         {
-          title: "Resumen Diario",
+          title: "Punto de Venta",
           url: "/dashboard/sales/daily-sales",
         },
         {
@@ -83,16 +83,8 @@ const salesData = {
       icon: Package,
       items: [
         {
-          title: "Inventario",
-          url: "/productos/inventario",
-        },
-        {
-          title: "Categorías",
-          url: "/productos/categorias",
-        },
-        {
-          title: "Promociones",
-          url: "/productos/promociones",
+          title: "Reporte",
+          url: "/dashboard/products",
         },
       ],
     },
