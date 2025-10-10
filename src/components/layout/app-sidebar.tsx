@@ -10,7 +10,8 @@ import {
   HelpCircle,
   Bell,
   LayoutDashboard,
-  BarChart2
+  BarChart2,
+  Receipt
 } from "lucide-react"
 
 import { NavMain } from "@/components/layout/nav-main"
@@ -51,10 +52,6 @@ const salesData = {
         {
           title: "Análisis",
           url: "/dashboard/customers/customer-analytics",
-        },
-        {
-          title: "Potenciales",
-          url: "/dashboard/customers/potential-customers",
         }
       ],
     },
@@ -73,7 +70,7 @@ const salesData = {
         },
         {
           title: "Vendedores",
-          url: "/dashboard/sales/vendors",
+          url: "/dashboard/sales/pos-vendors",
         },
       ],
     },
@@ -85,6 +82,17 @@ const salesData = {
         {
           title: "Reporte",
           url: "/dashboard/products",
+        },
+      ],
+    },
+    {
+      title: "Facturación",
+      url: "#",
+      icon: Receipt,
+      items: [
+        {
+          title: "Reporte",
+          url: "/dashboard/invoicing",
         },
       ],
     },

@@ -333,4 +333,41 @@ export class POSService {
     const result = await db.query(query)
     return result.rows.map(row => String(row.custom_selection))
   }
+
+  // Obtener estadísticas de un vendedor específico o todos
+  static async getPOSStatsByVendor(range: TimeRange, salesperson?: string): Promise<POSStats> {
+    const dateCondition = this.getDateCondition(range)
+    
+    let salespersonCondition = ""
+    if (salesperson && salesperson !== 'all') {
+      salespersonCondition = `AND po.custom_selection = '${salesperson}'`
+    }
+
+    const query = `
+      SELECT 
+        COUNT(*) as total_sales,
+        SUM(po.amount_total) as total_amount,
+        COUNT(DISTINCT po.partner_id) FILTER (WHERE po.partner_id IS NOT NULL) as total_customers,
+        AVG(po.amount_total) as avg_ticket,
+        COUNT(*) FILTER (WHERE po.state IN ('paid', 'done', 'invoiced')) as total_transactions
+      FROM pos_order po
+      WHERE ${dateCondition}
+        AND po.state IN ('paid', 'done', 'invoiced')
+        ${salespersonCondition}
+    `
+
+    const result = await db.query(query)
+    const row = result.rows[0]
+
+    const vendorInfo = salesperson && salesperson !== 'all' ? ` - ${salesperson}` : ''
+
+    return {
+      totalSales: parseInt(String(row.total_sales) || '0', 10),
+      totalAmount: parseFloat(String(row.total_amount) || '0'),
+      totalCustomers: parseInt(String(row.total_customers) || '0', 10),
+      avgTicket: parseFloat(String(row.avg_ticket) || '0'),
+      totalTransactions: parseInt(String(row.total_transactions) || '0', 10),
+      period: this.getPeriodDescription(range) + vendorInfo
+    }
+  }
 }

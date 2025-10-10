@@ -6,11 +6,11 @@ export async function GET(req: NextRequest) {
   try {
     console.log("POS salespersons list API called")
     
-    const salespersons = await POSService.getSalespersonList()
+    const salespersonList = await POSService.getSalespersonList()
     
     return NextResponse.json({
       success: true,
-      data: salespersons
+      data: salespersonList
     })
     
   } catch (error) {

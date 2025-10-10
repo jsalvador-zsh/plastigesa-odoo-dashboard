@@ -241,3 +241,42 @@ export function usePOSSalesByPerson(range: POSTimeRange = 'today') {
 
   return { data, loading, error, refetch: fetchSalesByPerson }
 }
+
+// Hook para estadísticas de vendedor específico
+export function usePOSVendorStats(range: POSTimeRange = 'today', salesperson?: string) {
+  const [data, setData] = useState<POSStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchVendorStats = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const params = new URLSearchParams({ range })
+      if (salesperson && salesperson !== 'all') {
+        params.append('salesperson', salesperson)
+      }
+      
+      const response = await fetch(`/api/reports/pos-vendor-stats?${params}`)
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al obtener estadísticas del vendedor')
+      }
+      
+      setData(result.data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+      console.error('Error fetching POS vendor stats:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchVendorStats()
+  }, [range, salesperson])
+
+  return { data, loading, error, refetch: fetchVendorStats }
+}
