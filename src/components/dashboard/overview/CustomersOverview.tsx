@@ -28,7 +28,7 @@ export default function CustomersOverview() {
 
   // Calcular estadísticas simples (solo los primeros 5)
   const topCustomers = data.slice(0, 5)
-  const totalPurchases = topCustomers.reduce((sum, c) => sum + c.purchase_count, 0)
+  const totalPurchases = topCustomers.reduce((sum, c) => sum + (c.invoice_count || 0), 0)
   const totalAmount = topCustomers.reduce((sum, c) => sum + c.total_purchased, 0)
   const avgTicket = totalPurchases > 0 ? totalAmount / totalPurchases : 0
 
