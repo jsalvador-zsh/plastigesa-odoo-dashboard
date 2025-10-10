@@ -9,7 +9,7 @@ import { formatCurrency } from "@/utils/chartUtils"
 import Link from "next/link"
 
 export default function CustomersOverview() {
-  const { data, loading } = useCustomers({ range: 'month', limit: 5, page: 1 })
+  const { data, loading } = useCustomers({ range: 'month', limit: "10", page: 1 })
 
   if (loading) {
     return (
@@ -26,9 +26,10 @@ export default function CustomersOverview() {
     )
   }
 
-  // Calcular estadísticas simples
-  const totalPurchases = data.reduce((sum, c) => sum + c.purchase_count, 0)
-  const totalAmount = data.reduce((sum, c) => sum + c.total_purchased, 0)
+  // Calcular estadísticas simples (solo los primeros 5)
+  const topCustomers = data.slice(0, 5)
+  const totalPurchases = topCustomers.reduce((sum, c) => sum + c.purchase_count, 0)
+  const totalAmount = topCustomers.reduce((sum, c) => sum + c.total_purchased, 0)
   const avgTicket = totalPurchases > 0 ? totalAmount / totalPurchases : 0
 
   return (
@@ -45,7 +46,7 @@ export default function CustomersOverview() {
                 <Users className="h-3 w-3 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Top Clientes</p>
               </div>
-              <p className="text-2xl font-bold text-orange-600">{data.length}</p>
+              <p className="text-2xl font-bold text-orange-600">{data.slice(0, 5).length}</p>
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
