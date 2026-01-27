@@ -11,8 +11,8 @@ function validateTimeRange(range: string | null): TimeRange {
 }
 
 function validateState(state: string | null): SaleOrderState | 'all' {
-  if (state === "draft" || state === "sent" || state === "sale" || 
-      state === "done" || state === "cancel" || state === "all") {
+  if (state === "draft" || state === "sent" || state === "sale" ||
+    state === "done" || state === "cancel" || state === "all") {
     return state as SaleOrderState | 'all'
   }
   return "all"
@@ -31,15 +31,17 @@ function validateLimit(limit: string | null): number {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    
+
     const range = validateTimeRange(searchParams.get("range"))
     const state = validateState(searchParams.get("state"))
     const page = validatePage(searchParams.get("page"))
     const limit = validateLimit(searchParams.get("limit"))
-    
-    console.log("Sale orders API called:", { range, state, page, limit })
+    const journalId = searchParams.get("journal_id") ? parseInt(searchParams.get("journal_id")!, 10) : undefined
+    const salespersonId = searchParams.get("salesperson_id") ? parseInt(searchParams.get("salesperson_id")!, 10) : undefined
 
-    const result = await SalesService.getSaleOrders(range, state, page, limit)
+    console.log("Sale orders API called:", { range, state, page, limit, journalId, salespersonId })
+
+    const result = await SalesService.getSaleOrders(range, state, page, limit, journalId, salespersonId)
 
     const response = {
       success: true,
@@ -53,7 +55,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(response)
-    
+
   } catch (error) {
     console.error("Error fetching sale orders:", error)
     return NextResponse.json(

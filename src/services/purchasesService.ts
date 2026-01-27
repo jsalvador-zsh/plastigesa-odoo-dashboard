@@ -8,23 +8,23 @@ export class PurchasesService {
   static getDateCondition(range: TimeRange): string {
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth() + 1
-    
+
     switch (range) {
       case "month":
         return `EXTRACT(MONTH FROM am.invoice_date) = ${currentMonth} 
                 AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
-        
+
       case "quarter":
         const currentQuarter = Math.ceil(currentMonth / 3)
         const quarterStartMonth = (currentQuarter - 1) * 3 + 1
         const quarterEndMonth = currentQuarter * 3
-        
+
         return `EXTRACT(MONTH FROM am.invoice_date) BETWEEN ${quarterStartMonth} AND ${quarterEndMonth}
                 AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
-        
+
       case "year":
         return `EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
-        
+
       default:
         return `EXTRACT(MONTH FROM am.invoice_date) = ${currentMonth} 
                 AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
@@ -32,9 +32,13 @@ export class PurchasesService {
   }
 
   // Obtener últimas compras
-  static async getLatestPurchases(range: TimeRange, limit: number): Promise<LatestPurchase[]> {
+  static async getLatestPurchases(range: TimeRange, limit: number, journalId?: number): Promise<LatestPurchase[]> {
     const dateCondition = this.getDateCondition(range)
-    
+    let journalCondition = ""
+    if (journalId) {
+      journalCondition = `AND am.journal_id = ${journalId}`
+    }
+
     const query = `
       SELECT 
         rp.name AS customer_name,
@@ -48,6 +52,7 @@ export class PurchasesService {
       WHERE am.type IN ('out_invoice', 'out_refund')
         AND am.state = 'posted'
         AND ${dateCondition}
+        ${journalCondition}
       ORDER BY am.invoice_date DESC, am.id DESC
       LIMIT $1
     `
@@ -57,7 +62,11 @@ export class PurchasesService {
   }
 
   // Versión alternativa: últimas compras sin filtro de período (para mostrar las más recientes)
-  static async getRecentPurchases(limit: number): Promise<LatestPurchase[]> {
+  static async getRecentPurchases(limit: number, journalId?: number): Promise<LatestPurchase[]> {
+    let journalCondition = ""
+    if (journalId) {
+      journalCondition = `AND am.journal_id = ${journalId}`
+    }
     const query = `
       SELECT 
         rp.name AS customer_name,
@@ -71,6 +80,7 @@ export class PurchasesService {
       WHERE am.type IN ('out_invoice', 'out_refund')
         AND am.state = 'posted'
         AND am.invoice_date >= CURRENT_DATE - INTERVAL '30 days'
+        ${journalCondition}
       ORDER BY am.invoice_date DESC, am.id DESC
       LIMIT $1
     `

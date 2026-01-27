@@ -1,14 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { 
-  Card, 
-  CardAction, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import {
   Select,
@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import type { TimeRange } from "@/types/dashboard"
 import type { CustomerStats } from "@/types/stats"
 import { formatCurrency } from "@/utils/chartUtils"
+import type { Journal } from "@/types/invoice"
 
 const RANGE_OPTIONS = [
   { value: "month", label: "Mes actual" },
@@ -36,20 +37,62 @@ export default function CustomerStatsComponent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [range, setRange] = useState<TimeRange>("month")
+  const [journalId, setJournalId] = useState<number | undefined>(undefined)
+  const [journals, setJournals] = useState<Journal[]>([])
+  const [month, setMonth] = useState<number>(new Date().getMonth() + 1)
+  const [year, setYear] = useState<number>(new Date().getFullYear())
+
+  const months = [
+    { value: 1, label: "Enero" },
+    { value: 2, label: "Febrero" },
+    { value: 3, label: "Marzo" },
+    { value: 4, label: "Abril" },
+    { value: 5, label: "Mayo" },
+    { value: 6, label: "Junio" },
+    { value: 7, label: "Julio" },
+    { value: 8, label: "Agosto" },
+    { value: 9, label: "Septiembre" },
+    { value: 10, label: "Octubre" },
+    { value: 11, label: "Noviembre" },
+    { value: 12, label: "Diciembre" },
+  ]
+
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
+
+  useEffect(() => {
+    fetch('/api/reports/journals')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setJournals(json.data)
+        }
+      })
+      .catch(err => console.error("Error loading journals:", err))
+  }, [])
 
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-      
-      const res = await fetch(`/api/reports/customer-stats?range=${range}`)
-      
+
+      let url = `/api/reports/customer-stats?range=${range}`
+      if (journalId) url += `&journal_id=${journalId}`
+      if (range === 'month') {
+        url += `&month=${month}&year=${year}`
+      } else if (range === 'quarter') {
+        url += `&year=${year}`
+      } else if (range === 'year') {
+        url += `&year=${year}`
+      }
+
+      const res = await fetch(url)
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-      
+
       const json = await res.json()
-      
+
       if (json.success) {
         setStats(json.data)
       } else {
@@ -65,12 +108,12 @@ export default function CustomerStatsComponent() {
 
   useEffect(() => {
     fetchData()
-  }, [range])
+  }, [range, journalId, month, year])
 
   const renderBadge = (change: number) => {
     const isPositive = change >= 0
     const Icon = isPositive ? TrendingUpIcon : TrendingDownIcon
-    
+
     return (
       <Badge variant="outline" className={isPositive ? "text-green-600" : "text-red-600"}>
         <Icon className="size-3.5 mr-1" />
@@ -138,7 +181,7 @@ export default function CustomerStatsComponent() {
             Resumen de métricas para {stats.period}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
             <SelectTrigger className="w-40">
@@ -152,7 +195,49 @@ export default function CustomerStatsComponent() {
               ))}
             </SelectContent>
           </Select>
-          
+
+          {range === 'month' && (
+            <Select value={month.toString()} onValueChange={(v) => setMonth(parseInt(v, 10))}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Mes" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m) => (
+                  <SelectItem key={m.value} value={m.value.toString()}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          <Select value={year.toString()} onValueChange={(v) => setYear(parseInt(v, 10))}>
+            <SelectTrigger className="w-24">
+              <SelectValue placeholder="Año" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((y) => (
+                <SelectItem key={y} value={y.toString()}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={journalId?.toString() || 'all'} onValueChange={(v) => setJournalId(v === 'all' ? undefined : parseInt(v, 10))}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Serie/Diario" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las series</SelectItem>
+              {journals.map((journal) => (
+                <SelectItem key={journal.id} value={journal.id.toString()}>
+                  {journal.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Button
             onClick={fetchData}
             variant="outline"
@@ -180,8 +265,8 @@ export default function CustomerStatsComponent() {
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
               {stats.totalCustomersChange >= 0 ? 'Creciendo' : 'Disminuyendo'} vs período anterior
-              {stats.totalCustomersChange >= 0 ? 
-                <TrendingUpIcon className="size-4 text-green-400" /> : 
+              {stats.totalCustomersChange >= 0 ?
+                <TrendingUpIcon className="size-4 text-green-400" /> :
                 <TrendingDownIcon className="size-4 text-red-400" />}
             </div>
             <div className="text-muted-foreground">

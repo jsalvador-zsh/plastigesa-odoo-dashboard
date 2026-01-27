@@ -6,6 +6,7 @@ interface UseLatestPurchasesParams {
   limit?: number
   range?: TimeRange
   mode?: 'period' | 'recent' // 'period' usa filtro de período, 'recent' muestra las más recientes
+  journalId?: number
 }
 
 interface UseLatestPurchasesReturn {
@@ -15,10 +16,11 @@ interface UseLatestPurchasesReturn {
   refetch: () => void
 }
 
-export function useLatestPurchases({ 
-  limit = 10, 
+export function useLatestPurchases({
+  limit = 10,
   range = "month",
-  mode = "recent"
+  mode = "recent",
+  journalId
 }: UseLatestPurchasesParams = {}): UseLatestPurchasesReturn {
   const [data, setData] = useState<LatestPurchase[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,19 +35,21 @@ export function useLatestPurchases({
         limit: limit.toString(),
         mode
       })
-      
+
+      if (journalId) params.append('journal_id', journalId.toString());
+
       if (mode === 'period') {
         params.append('range', range)
       }
 
       const res = await fetch(`/api/reports/latest-purchases?${params}`)
-      
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
 
       const json = await res.json()
-      
+
       if (json.success) {
         setData(json.data)
       } else {
@@ -57,7 +61,7 @@ export function useLatestPurchases({
     } finally {
       setLoading(false)
     }
-  }, [limit, range, mode])
+  }, [limit, range, mode, journalId])
 
   useEffect(() => {
     fetchData()

@@ -14,20 +14,26 @@ export default function DashboardPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <SiteHeader title="Ventas totales"/>
+        <SiteHeader title="Ventas totales" />
         <div className="flex flex-1 flex-col px-4 lg:px-6">
           <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="grid gap-4 py-4">
-            <SalesStatsCards />
-            <div className="grid gap-4 md:grid-cols-2">
-              <SalesEvolutionChart />
-              <TicketEvolutionChart />
+            <div className="grid gap-4 py-4">
+              <div id="tour-sales-stats">
+                <SalesStatsCards />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div id="tour-sales-evolution">
+                  <SalesEvolutionChart />
+                </div>
+                <TicketEvolutionChart />
+              </div>
+              <div className="grid gap-4 @4xl/main:grid-cols-2">
+                <div id="tour-sales-orders" className="@4xl/main:col-span-2">
+                  <SalesOrdersTable />
+                </div>
+                <ConversionFunnelChart />
+              </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <SalesOrdersTable />
-              <ConversionFunnelChart />
-            </div>
-          </div>
           </div>
         </div>
       </SidebarInset>

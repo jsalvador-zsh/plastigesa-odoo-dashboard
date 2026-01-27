@@ -6,26 +6,26 @@ import type { Customer } from "@/types/dashboard"
 function getDateCondition(range: string): string {
   const currentYear = new Date().getFullYear()
   const currentMonth = new Date().getMonth() + 1 // getMonth() devuelve 0-11
-  
+
   switch (range) {
     case "month":
       // Mes actual
       return `EXTRACT(MONTH FROM am.invoice_date) = ${currentMonth} 
               AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
-      
+
     case "quarter":
       // Trimestre actual
       const currentQuarter = Math.ceil(currentMonth / 3)
       const quarterStartMonth = (currentQuarter - 1) * 3 + 1
       const quarterEndMonth = currentQuarter * 3
-      
+
       return `EXTRACT(MONTH FROM am.invoice_date) BETWEEN ${quarterStartMonth} AND ${quarterEndMonth}
               AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
-      
+
     case "year":
       // Año actual
       return `EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
-      
+
     default:
       return `EXTRACT(MONTH FROM am.invoice_date) = ${currentMonth} 
               AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`
@@ -34,7 +34,7 @@ function getDateCondition(range: string): string {
 
 export async function GET(req: NextRequest) {
   console.log("API called") // Debug
-  
+
   const { searchParams } = new URL(req.url)
   const range = searchParams.get("range") || "month"
   const topLimit = parseInt(searchParams.get("limit") || "10", 10)
@@ -45,7 +45,15 @@ export async function GET(req: NextRequest) {
   console.log("Params:", { range, topLimit, page, perPage, offset }) // Debug
 
   const dateCondition = getDateCondition(range)
+  const journalId = searchParams.get("journal_id") ? parseInt(searchParams.get("journal_id")!, 10) : undefined
+
+  let journalCondition = ""
+  if (journalId) {
+    journalCondition = `AND am.journal_id = ${journalId}`
+  }
+
   console.log("Date condition:", dateCondition) // Debug
+  console.log("Journal filter:", journalId) // Debug
 
   try {
     // Debug query específica para CORPORACIÓN RICO S.A.C.
@@ -64,15 +72,16 @@ export async function GET(req: NextRequest) {
         AND am.type IN ('out_invoice', 'out_refund')
         AND am.state = 'posted'
         AND ${dateCondition}
+        ${journalCondition}
       ORDER BY am.invoice_date DESC
     `
 
     console.log("Debug query for CORPORACIÓN RICO S.A.C.:", debugQuery)
     const debugResult = await db.query(debugQuery)
     console.log("Debug result:", debugResult.rows)
-    
+
     // Calcular total para verificar
-    const debugTotal = debugResult.rows.reduce((sum, row) => 
+    const debugTotal = debugResult.rows.reduce((sum, row) =>
       sum + parseFloat(row.amount_total_signed), 0
     )
     console.log("Debug total for CORPORACIÓN RICO S.A.C.:", debugTotal)
@@ -96,6 +105,7 @@ export async function GET(req: NextRequest) {
       WHERE am.type IN ('out_invoice', 'out_refund')
         AND am.state = 'posted'
         AND ${dateCondition}
+        ${journalCondition}
       GROUP BY rp.id, rp.name
       HAVING COALESCE(SUM(
         CASE 
@@ -112,7 +122,7 @@ export async function GET(req: NextRequest) {
     console.log("With params:", [topLimit])
 
     const allResult = await db.query(query, [topLimit])
-    
+
     console.log("Raw DB result:", allResult.rows)
 
     const allRows: Customer[] = allResult.rows.map(row => ({
@@ -145,10 +155,10 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Database error:", error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         data: [],
-        error: `Error al obtener los datos: ${error instanceof Error ? error.message : 'Unknown error'}` 
+        error: `Error al obtener los datos: ${error instanceof Error ? error.message : 'Unknown error'}`
       },
       { status: 500 }
     )

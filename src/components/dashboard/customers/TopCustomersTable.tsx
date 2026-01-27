@@ -8,31 +8,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select"
-import { 
-  Pagination, 
-  PaginationContent, 
+import {
+  Pagination,
+  PaginationContent,
   PaginationItem
 } from "@/components/ui/pagination"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState, useMemo } from "react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { 
+import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
   RefreshCw,
   SearchIcon,
-  AlertCircle
+  AlertCircle,
+  Download,
+  FileDown
 } from "lucide-react"
+import { exportToExcel } from "@/utils/exportUtils"
+import type { Journal } from "@/types/invoice"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,11 +46,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 // Imports de tipos y utilidades
 import type { Customer, TimeRange, TopLimit } from "@/types/dashboard"
 import { useCustomers } from "@/hooks/useCustomers"
-import { 
-  formatCurrency, 
-  RANGE_OPTIONS, 
+import {
+  formatCurrency,
+  RANGE_OPTIONS,
   LIMIT_OPTIONS,
-  getCurrentPeriodDescription 
+  getCurrentPeriodDescription
 } from "@/utils/chartUtils"
 
 export default function TopCustomersTable() {
@@ -54,18 +58,34 @@ export default function TopCustomersTable() {
   const [limit, setLimit] = useState<TopLimit>("10")
   const [page, setPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
+  const [journalId, setJournalId] = useState<number | undefined>(undefined)
+  const [journals, setJournals] = useState<Journal[]>([])
+  const [isExporting, setIsExporting] = useState(false)
+
+  // Cargar diarios al montar el componente
+  useEffect(() => {
+    fetch('/api/reports/journals')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setJournals(json.data)
+        }
+      })
+      .catch(err => console.error("Error loading journals:", err))
+  }, [])
 
   // Usar el custom hook
   const { data, loading, error, totalPages, refetch } = useCustomers({
     range,
     limit,
-    page
+    page,
+    journalId
   })
 
   // Memoizar los datos filtrados para mejor performance
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
-    return data.filter(customer => 
+    return data.filter(customer =>
       customer.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [data, searchTerm])
@@ -81,8 +101,38 @@ export default function TopCustomersTable() {
   }
 
   const handleSearchChange = (value: string) => {
-    setSearchTerm(value)
     // No resetear página aquí porque el filtro es del lado cliente
+  }
+
+  const handleJournalChange = (value: string) => {
+    setJournalId(value === 'all' ? undefined : parseInt(value, 10))
+    setPage(1)
+  }
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      let url = `/api/reports/top-customers?range=${range}&limit=1000&page=1`
+      if (journalId) url += `&journal_id=${journalId}`
+
+      const res = await fetch(url)
+      const json = await res.json()
+
+      if (json.success) {
+        const exportData = json.data.map((customer: any) => ({
+          'Cliente': customer.customer_name,
+          'Total Compras': customer.total_purchased,
+          'Facturas': customer.invoice_count,
+          'Notas de Crédito': customer.refund_count,
+          'Última Compra': customer.last_purchase
+        }))
+        exportToExcel(exportData, 'Top_Clientes', 'Clientes')
+      }
+    } catch (err) {
+      console.error("Error exporting data:", err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   // Loading state
@@ -130,9 +180,9 @@ export default function TopCustomersTable() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-            <Button 
-              onClick={refetch} 
-              variant="outline" 
+            <Button
+              onClick={refetch}
+              variant="outline"
               className="mt-4"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -155,7 +205,7 @@ export default function TopCustomersTable() {
                 Los clientes con mayores compras en {getCurrentPeriodDescription(range).toLowerCase()}
               </CardDescription>
             </div>
-            
+
             <div className="flex flex-col gap-2 @md/main:items-end">
               <div className="flex gap-2">
                 <Select value={range} onValueChange={handleRangeChange}>
@@ -171,7 +221,7 @@ export default function TopCustomersTable() {
                   </SelectContent>
                 </Select>
 
-                <Select value={limit} onValueChange={handleLimitChange}>
+                <Select value={limit.toString()} onValueChange={handleLimitChange}>
                   <SelectTrigger className="w-[120px]">
                     <SelectValue placeholder="Mostrar" />
                   </SelectTrigger>
@@ -179,6 +229,20 @@ export default function TopCustomersTable() {
                     {LIMIT_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={journalId?.toString() || 'all'} onValueChange={handleJournalChange}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Serie/Diario" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las series</SelectItem>
+                    {journals.map((journal) => (
+                      <SelectItem key={journal.id} value={journal.id.toString()}>
+                        {journal.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -192,8 +256,24 @@ export default function TopCustomersTable() {
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
+
+                <Button
+                  id="tour-export-button"
+                  onClick={handleExport}
+                  variant="outline"
+                  size="default"
+                  disabled={isExporting || loading}
+                  className="flex items-center gap-2"
+                >
+                  {isExporting ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4 w-4" />
+                  )}
+                  Exportar
+                </Button>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="w-fit">
                   {data.length} clientes
@@ -363,11 +443,11 @@ export default function TopCustomersTable() {
               </Pagination>
             </div>
           )}
-          
+
           {/* Mensaje de filtro activo */}
           {searchTerm && (
             <div className="text-center text-sm text-muted-foreground border-t pt-3">
-              Mostrando {filteredData.length} de {data.length} clientes 
+              Mostrando {filteredData.length} de {data.length} clientes
               {filteredData.length < data.length && (
                 <Button
                   variant="link"

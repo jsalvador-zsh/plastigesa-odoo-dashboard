@@ -24,12 +24,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -49,7 +49,10 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { Download, FileDown } from "lucide-react"
+import { exportToExcel } from "@/utils/exportUtils"
+import type { Journal } from "@/types/invoice"
 
 // Imports de tipos y hooks
 import type { TimeRange, SaleOrderState } from "@/types/sales"
@@ -72,24 +75,48 @@ const STATE_OPTIONS = [
   { value: "cancel", label: "Cancelada" }
 ]
 
+const SALESWOMEN = [
+  { id: 11, name: "ROXANA HUANCOLLO" },
+  { id: 12, name: "KATHERINE ALPACA" },
+  { id: 13, name: "APIMA POLTRADE" },
+  { id: 37, name: "ATENCION TIENDA" }
+]
+
 export default function SalesOrdersTable() {
   const [range, setRange] = useState<TimeRange>("month")
   const [state, setState] = useState<SaleOrderState | 'all'>("all")
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState("")
+  const [journalId, setJournalId] = useState<number | undefined>(undefined)
+  const [salespersonId, setSalespersonId] = useState<number | undefined>(undefined)
+  const [journals, setJournals] = useState<Journal[]>([])
+  const [isExporting, setIsExporting] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/reports/journals')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setJournals(json.data)
+        }
+      })
+      .catch(err => console.error("Error loading journals:", err))
+  }, [])
 
   const { data, loading, error, totalPages, refetch } = useSaleOrders({
     range,
     state,
     page,
-    limit
+    limit,
+    journalId,
+    salespersonId
   })
 
   // Memoizar datos filtrados
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
-    return data.filter(order => 
+    return data.filter(order =>
       order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.partner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (order.user_name && order.user_name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -109,6 +136,49 @@ export default function SalesOrdersTable() {
   const handleStateChange = (value: string) => {
     setState(value as SaleOrderState | 'all')
     setPage(1)
+  }
+
+  const handleJournalChange = (value: string) => {
+    setJournalId(value === 'all' ? undefined : parseInt(value, 10))
+    setPage(1)
+  }
+
+  const handleSalespersonChange = (value: string) => {
+    setSalespersonId(value === 'all' ? undefined : parseInt(value, 10))
+    setPage(1)
+  }
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      const params = new URLSearchParams({
+        range,
+        state,
+        limit: "1000",
+        page: "1"
+      })
+      if (journalId) params.append("journal_id", journalId.toString());
+      if (salespersonId) params.append("salesperson_id", salespersonId.toString());
+
+      const res = await fetch(`/api/reports/sale-orders?${params}`)
+      const json = await res.json()
+
+      if (json.success) {
+        const exportData = json.data.map((order: any) => ({
+          'Número': order.name,
+          'Cliente': order.partner_name,
+          'Fecha': format(new Date(order.date_order), 'dd/MM/yyyy HH:mm', { locale: es }),
+          'Total MN': order.amount_total_mn,
+          'Estado': STATE_OPTIONS.find(s => s.value === order.state)?.label || order.state,
+          'Vendedor': order.user_name || 'Sin asignar'
+        }))
+        exportToExcel(exportData, 'Ordenes_de_Venta', 'Ventas')
+      }
+    } catch (err) {
+      console.error("Error exporting data:", err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   // Función para obtener badge del estado
@@ -141,7 +211,7 @@ export default function SalesOrdersTable() {
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
-    
+
     switch (range) {
       case "month":
         return `${monthNames[currentMonth - 1]} ${currentYear}`
@@ -231,7 +301,7 @@ export default function SalesOrdersTable() {
                 {state !== 'all' && ` - ${STATE_OPTIONS.find(s => s.value === state)?.label}`}
               </CardDescription>
             </div>
-            
+
             <div className="flex flex-col gap-2 @md/main:items-end">
               <div className="flex gap-2 flex-wrap">
                 <Select value={range} onValueChange={handleRangeChange}>
@@ -273,6 +343,34 @@ export default function SalesOrdersTable() {
                   </SelectContent>
                 </Select>
 
+                <Select value={journalId?.toString() || 'all'} onValueChange={handleJournalChange}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Serie/Diario" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las series</SelectItem>
+                    {journals.map((journal) => (
+                      <SelectItem key={journal.id} value={journal.id.toString()}>
+                        {journal.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={salespersonId?.toString() || 'all'} onValueChange={handleSalespersonChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Vendedor/a" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los vendedores</SelectItem>
+                    {SALESWOMEN.map((person) => (
+                      <SelectItem key={person.id} value={person.id.toString()}>
+                        {person.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <Button
                   onClick={refetch}
                   variant="outline"
@@ -281,8 +379,23 @@ export default function SalesOrdersTable() {
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
+
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  size="default"
+                  disabled={isExporting || loading}
+                  className="flex items-center gap-2"
+                >
+                  {isExporting ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4 w-4" />
+                  )}
+                  Exportar
+                </Button>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="w-fit">
                   {data.length} registros
@@ -461,11 +574,11 @@ export default function SalesOrdersTable() {
               </Pagination>
             </div>
           )}
-          
+
           {/* Mensaje de filtro activo */}
           {searchTerm && (
             <div className="text-center text-sm text-muted-foreground border-t pt-3">
-              Mostrando {filteredData.length} de {data.length} órdenes 
+              Mostrando {filteredData.length} de {data.length} órdenes
               {filteredData.length < data.length && (
                 <Button
                   variant="link"

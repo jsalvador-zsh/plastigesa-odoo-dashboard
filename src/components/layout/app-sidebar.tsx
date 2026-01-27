@@ -138,7 +138,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent id="tour-sidebar">
         <NavMain items={salesData.navMain} />
         {/* <NavQuickAccess items={salesData.quickAccess} /> */}
       </SidebarContent>

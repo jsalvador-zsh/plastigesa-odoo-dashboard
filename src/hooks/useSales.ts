@@ -8,6 +8,8 @@ interface UseSaleOrdersParams {
   state: SaleOrderState | 'all'
   page: number
   limit: number
+  journalId?: number
+  salespersonId?: number
 }
 
 interface UseSaleOrdersReturn {
@@ -18,11 +20,13 @@ interface UseSaleOrdersReturn {
   refetch: () => void
 }
 
-export function useSaleOrders({ 
-  range, 
-  state, 
-  page, 
-  limit 
+export function useSaleOrders({
+  range,
+  state,
+  page,
+  limit,
+  journalId,
+  salespersonId
 }: UseSaleOrdersParams): UseSaleOrdersReturn {
   const [data, setData] = useState<SaleOrder[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,14 +45,17 @@ export function useSaleOrders({
         limit: limit.toString()
       })
 
+      if (journalId) params.append("journal_id", journalId.toString());
+      if (salespersonId) params.append("salesperson_id", salespersonId.toString());
+
       const res = await fetch(`/api/reports/sale-orders?${params}`)
-      
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
 
       const json = await res.json()
-      
+
       if (json.success) {
         setData(json.data)
         setTotalPages(json.meta?.totalPages || 1)
@@ -62,7 +69,7 @@ export function useSaleOrders({
     } finally {
       setLoading(false)
     }
-  }, [range, state, page, limit])
+  }, [range, state, page, limit, journalId, salespersonId])
 
   useEffect(() => {
     fetchData()
@@ -100,13 +107,13 @@ export function useSalesStats({ range }: UseSalesStatsParams): UseSalesStatsRetu
       setError(null)
 
       const res = await fetch(`/api/reports/sales-stats?range=${range}`)
-      
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
 
       const json = await res.json()
-      
+
       if (json.success) {
         setStats(json.data)
       } else {
@@ -144,13 +151,13 @@ export function useSalesSummary({ range }: UseSalesStatsParams) {
       setError(null)
 
       const res = await fetch(`/api/reports/sales-summary?range=${range}`)
-      
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
 
       const json = await res.json()
-      
+
       if (json.success) {
         setSummary(json.data)
       } else {

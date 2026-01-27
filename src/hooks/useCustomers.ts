@@ -1,16 +1,17 @@
 // src/hooks/useCustomers.ts
 import { useState, useEffect, useCallback } from "react"
-import type { 
-  Customer, 
-  TimeRange, 
-  TopLimit, 
-  ApiResponse 
+import type {
+  Customer,
+  TimeRange,
+  TopLimit,
+  ApiResponse
 } from "@/types/dashboard"
 
 interface UseCustomersParams {
   range: TimeRange
   limit: TopLimit
   page: number
+  journalId?: number
 }
 
 interface UseCustomersReturn {
@@ -21,10 +22,11 @@ interface UseCustomersReturn {
   refetch: () => void
 }
 
-export function useCustomers({ 
-  range, 
-  limit, 
-  page 
+export function useCustomers({
+  range,
+  limit,
+  page,
+  journalId
 }: UseCustomersParams): UseCustomersReturn {
   const [data, setData] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,16 +38,17 @@ export function useCustomers({
       setLoading(true)
       setError(null)
 
-      const res = await fetch(
-        `/api/reports/top-customers?range=${range}&limit=${limit}&page=${page}`
-      )
-      
+      let url = `/api/reports/top-customers?range=${range}&limit=${limit}&page=${page}`
+      if (journalId) url += `&journal_id=${journalId}`
+
+      const res = await fetch(url)
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
 
       const json: ApiResponse<Customer[]> = await res.json()
-      
+
       if (json.success) {
         setData(json.data)
         setTotalPages(json.meta?.totalPages || 1)
@@ -59,7 +62,7 @@ export function useCustomers({
     } finally {
       setLoading(false)
     }
-  }, [range, limit, page])
+  }, [range, limit, page, journalId])
 
   useEffect(() => {
     fetchData()

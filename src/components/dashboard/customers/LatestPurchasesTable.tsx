@@ -15,15 +15,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -34,8 +34,12 @@ import {
   AlertCircle,
   ShoppingCart,
   Receipt,
-  RotateCcw
+  RotateCcw,
+  Download,
+  FileDown
 } from "lucide-react"
+import { exportToExcel } from "@/utils/exportUtils"
+import type { Journal } from "@/types/invoice"
 
 // Imports de tipos y hooks
 import type { TimeRange } from "@/types/purchases"
@@ -53,12 +57,57 @@ export default function LatestPurchasesTable() {
   const [limit, setLimit] = useState(10)
   const [range, setRange] = useState<TimeRange>("month")
   const [mode, setMode] = useState<'period' | 'recent'>("recent")
+  const [journalId, setJournalId] = useState<number | undefined>(undefined)
+  const [journals, setJournals] = useState<Journal[]>([])
+  const [isExporting, setIsExporting] = useState(false)
+
+  // Cargar diarios
+  useEffect(() => {
+    fetch('/api/reports/journals')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setJournals(json.data)
+        }
+      })
+      .catch(err => console.error("Error loading journals:", err))
+  }, [])
 
   const { data, loading, error, refetch } = useLatestPurchases({
     limit,
     range,
-    mode
+    mode,
+    journalId
   })
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      const params = new URLSearchParams({
+        limit: "1000",
+        mode
+      })
+      if (mode === 'period') params.append('range', range);
+      if (journalId) params.append('journal_id', journalId.toString());
+
+      const res = await fetch(`/api/reports/latest-purchases?${params}`)
+      const json = await res.json()
+
+      if (json.success) {
+        const exportData = json.data.map((purchase: any) => ({
+          'Cliente': purchase.customer_name,
+          'Factura': purchase.invoice_number,
+          'Fecha': format(new Date(purchase.invoice_date), 'dd/MM/yyyy', { locale: es }),
+          'Total': purchase.amount_total_signed,
+          'Tipo': purchase.invoice_type === 'out_refund' ? 'Nota de Crédito' : 'Factura'
+        }))
+        exportToExcel(exportData, 'Ultimas_Compras', 'Compras')
+      }
+    } catch (err) {
+      console.error("Error exporting data:", err)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   // Loading state
   if (loading) {
@@ -111,9 +160,9 @@ export default function LatestPurchasesTable() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-            <Button 
-              onClick={refetch} 
-              variant="outline" 
+            <Button
+              onClick={refetch}
+              variant="outline"
               className="mt-4"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -143,7 +192,7 @@ export default function LatestPurchasesTable() {
                 )}
               </CardDescription>
             </div>
-            
+
             <div className="flex flex-col gap-2 @md/main:items-end">
               <div className="flex gap-2">
                 {mode === 'period' && (
@@ -161,8 +210,8 @@ export default function LatestPurchasesTable() {
                   </Select>
                 )}
 
-                <Select 
-                  value={limit.toString()} 
+                <Select
+                  value={limit.toString()}
                   onValueChange={(value) => setLimit(parseInt(value, 10))}
                 >
                   <SelectTrigger className="w-[120px]">
@@ -177,6 +226,20 @@ export default function LatestPurchasesTable() {
                   </SelectContent>
                 </Select>
 
+                <Select value={journalId?.toString() || 'all'} onValueChange={(v) => setJournalId(v === 'all' ? undefined : parseInt(v, 10))}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Serie/Diario" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las series</SelectItem>
+                    {journals.map((journal) => (
+                      <SelectItem key={journal.id} value={journal.id.toString()}>
+                        {journal.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <Button
                   onClick={refetch}
                   variant="outline"
@@ -185,8 +248,23 @@ export default function LatestPurchasesTable() {
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
+
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  size="default"
+                  disabled={isExporting || loading}
+                  className="flex items-center gap-2"
+                >
+                  {isExporting ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4 w-4" />
+                  )}
+                  Exportar
+                </Button>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="w-fit">
                   {data.length} registros
@@ -251,11 +329,10 @@ export default function LatestPurchasesTable() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end">
-                          <span className={`font-semibold ${
-                            purchase.invoice_type === 'out_refund' 
-                              ? 'text-red-600' 
-                              : 'text-foreground'
-                          }`}>
+                          <span className={`font-semibold ${purchase.invoice_type === 'out_refund'
+                            ? 'text-red-600'
+                            : 'text-foreground'
+                            }`}>
                             {purchase.invoice_type === 'out_refund' ? '-' : ''}
                             {formatCurrency(Math.abs(purchase.amount_total_signed), "S/")}
                           </span>
@@ -275,7 +352,7 @@ export default function LatestPurchasesTable() {
                         <div>
                           <p className="text-sm font-medium">No hay compras disponibles</p>
                           <p className="text-xs text-muted-foreground">
-                            {mode === 'recent' 
+                            {mode === 'recent'
                               ? "No se encontraron compras en los últimos 30 días"
                               : `No se encontraron compras en ${getCurrentPeriodDescription(range).toLowerCase()}`
                             }

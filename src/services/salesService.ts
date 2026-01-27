@@ -65,7 +65,9 @@ export class SalesService {
     range: TimeRange,
     state: SaleOrderState | 'all' = 'all',
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    journalId?: number,
+    salespersonId?: number
   ): Promise<{ data: SaleOrder[], meta: any }> {
     const dateCondition = this.getDateCondition(range)
     const offset = (page - 1) * limit
@@ -75,9 +77,25 @@ export class SalesService {
       stateCondition = `AND so.state = '${state}'`
     }
 
-    // Solo incluir vendedores específicos
-    const allowedUserIds = [11, 12, 13, 37]
-    const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
+    // Vendedores
+    let userCondition = ""
+    if (salespersonId) {
+      userCondition = `AND so.user_id = ${salespersonId}`
+    } else {
+      // Solo incluir vendedores específicos por defecto si no se especifica uno
+      const allowedUserIds = [11, 12, 13, 37]
+      userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
+    }
+
+    // Series (vía facturas asociadas)
+    let journalCondition = ""
+    if (journalId) {
+      journalCondition = `AND EXISTS (
+        SELECT 1 FROM account_move am 
+        WHERE am.invoice_origin = so.name 
+        AND am.journal_id = ${journalId}
+      )`
+    }
 
     const baseQuery = `
       SELECT 
@@ -99,6 +117,7 @@ export class SalesService {
       WHERE ${dateCondition}
         ${stateCondition}
         ${userCondition}
+        ${journalCondition}
       ORDER BY so.date_order DESC
     `
 
@@ -109,6 +128,7 @@ export class SalesService {
       WHERE ${dateCondition}
         ${stateCondition}
         ${userCondition}
+        ${journalCondition}
     `
 
     try {

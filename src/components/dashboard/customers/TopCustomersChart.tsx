@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     Card,
     CardHeader,
@@ -47,25 +47,40 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 // Imports de tipos y hooks personalizados
 import type { TimeRange, TopLimit } from "@/types/dashboard"
 import { useCustomers } from "@/hooks/useCustomers"
-import { 
-    formatCurrency, 
-    formatCustomerName, 
-    RANGE_OPTIONS, 
+import {
+    formatCurrency,
+    formatCustomerName,
+    RANGE_OPTIONS,
     LIMIT_OPTIONS,
     CHART_COLORS,
     validateChartData,
-    getCurrentPeriodDescription 
+    getCurrentPeriodDescription
 } from "@/utils/chartUtils"
+import type { Journal } from "@/types/invoice"
 
 export default function TopCustomersChart() {
     const [range, setRange] = useState<TimeRange>("month")
     const [limit, setLimit] = useState<TopLimit>("10")
     const [page, setPage] = useState(1)
+    const [journalId, setJournalId] = useState<number | undefined>(undefined)
+    const [journals, setJournals] = useState<Journal[]>([])
+
+    useEffect(() => {
+        fetch('/api/reports/journals')
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) {
+                    setJournals(json.data)
+                }
+            })
+            .catch(err => console.error("Error loading journals:", err))
+    }, [])
 
     const { data, loading, error, totalPages, refetch } = useCustomers({
         range,
         limit,
-        page
+        page,
+        journalId
     })
 
     const handleLimitChange = (value: string) => {
@@ -75,6 +90,11 @@ export default function TopCustomersChart() {
 
     const handleRangeChange = (value: string | TimeRange) => {
         setRange(value as TimeRange)
+        setPage(1)
+    }
+
+    const handleJournalChange = (value: string) => {
+        setJournalId(value === 'all' ? undefined : parseInt(value, 10))
         setPage(1)
     }
 
@@ -115,9 +135,9 @@ export default function TopCustomersChart() {
                             {error}
                         </AlertDescription>
                     </Alert>
-                    <Button 
-                        onClick={refetch} 
-                        variant="outline" 
+                    <Button
+                        onClick={refetch}
+                        variant="outline"
                         className="mt-4"
                     >
                         <RefreshCw className="mr-2 h-4 w-4" />
@@ -190,6 +210,20 @@ export default function TopCustomersChart() {
                                 </SelectContent>
                             </Select>
 
+                            <Select value={journalId?.toString() || 'all'} onValueChange={handleJournalChange}>
+                                <SelectTrigger className="w-[160px]">
+                                    <SelectValue placeholder="Serie/Diario" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todas las series</SelectItem>
+                                    {journals.map((journal) => (
+                                        <SelectItem key={journal.id} value={journal.id.toString()}>
+                                            {journal.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
                             <Button
                                 onClick={refetch}
                                 variant="outline"
@@ -233,7 +267,7 @@ export default function TopCustomersChart() {
                                                 const formattedValue = formatCurrency(value, "S/")
                                                 const invoiceCount = customer?.invoice_count || 0
                                                 const refundCount = customer?.refund_count || 0
-                                                
+
                                                 return [
                                                     formattedValue,
                                                     <div key="details" className="text-xs text-muted-foreground mt-1">
