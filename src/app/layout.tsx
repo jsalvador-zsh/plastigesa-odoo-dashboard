@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { ClerkProvider } from "@clerk/nextjs"
 import { esMX } from '@clerk/localizations'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   title: "Dashboard Plastigesa",
@@ -22,6 +23,7 @@ export default function RootLayout({
           <ReactQueryProvider>
             {children}
           </ReactQueryProvider>
+          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>
