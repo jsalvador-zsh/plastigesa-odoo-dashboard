@@ -1,6 +1,5 @@
 // src/components/dashboard/pos/POSSalesByPersonChart.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -41,11 +40,9 @@ import {
   Cell,
   ReferenceLine
 } from "recharts"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSSalesByPerson } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -53,7 +50,6 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 // Colores para vendedores
 const SALESPERSON_COLORS = [
   "#3B82F6", // Azul
@@ -67,7 +63,6 @@ const SALESPERSON_COLORS = [
   "#EC4899", // Rosa
   "#6B7280"  // Gris
 ]
-
 interface ChartDataItem {
   salesperson: string
   total_sales: number
@@ -77,16 +72,13 @@ interface ChartDataItem {
   color: string
   short_name: string
 }
-
 export default function POSSalesByPersonChart() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const { data, loading, error, refetch } = usePOSSalesByPerson(range)
-
   // Calcular totales para porcentajes y promedios
   const totalSales = data.reduce((sum, item) => sum + item.total_sales, 0)
   const totalAmount = data.reduce((sum, item) => sum + item.total_amount, 0)
   const avgTicketOverall = totalSales > 0 ? totalAmount / totalSales : 0
-
   // Preparar datos para el gráfico
   const chartData: ChartDataItem[] = data.map((item, index) => ({
     ...item,
@@ -96,10 +88,8 @@ export default function POSSalesByPersonChart() {
       ? item.salesperson.substring(0, 12) + "..." 
       : item.salesperson
   }))
-
   // Encontrar el mejor vendedor
   const topSalesperson = data.length > 0 ? data[0] : null
-
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -136,7 +126,6 @@ export default function POSSalesByPersonChart() {
     }
     return null
   }
-
   if (loading) {
     return (
       <Card>
@@ -168,7 +157,6 @@ export default function POSSalesByPersonChart() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -192,7 +180,6 @@ export default function POSSalesByPersonChart() {
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -206,7 +193,6 @@ export default function POSSalesByPersonChart() {
               Comparativo de desempeño por vendedor - {data.length} vendedores activos
             </CardDescription>
           </div>
-          
           <div className="flex items-center gap-4">
             <Select value={range} onValueChange={(value) => setRange(value as POSTimeRange)}>
               <SelectTrigger className="w-40">
@@ -220,14 +206,12 @@ export default function POSSalesByPersonChart() {
                 ))}
               </SelectContent>
             </Select>
-            
             <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-6">
         {data.length > 0 ? (
           <>
@@ -251,7 +235,6 @@ export default function POSSalesByPersonChart() {
                   )}
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -264,7 +247,6 @@ export default function POSSalesByPersonChart() {
                   </p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -280,7 +262,6 @@ export default function POSSalesByPersonChart() {
                 </CardContent>
               </Card>
             </div>
-
             <div className="grid grid-cols-1 @4xl/main:grid-cols-2 gap-6">
               {/* Gráfico de barras */}
               <div className="space-y-4">
@@ -288,7 +269,6 @@ export default function POSSalesByPersonChart() {
                   <BarChart3 className="h-5 w-5" />
                   <h3 className="text-lg font-semibold">Ventas por Cantidad</h3>
                 </div>
-                
                 {chartData.length > 0 ? (
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
@@ -315,7 +295,6 @@ export default function POSSalesByPersonChart() {
                           width={100}
                         />
                         <Tooltip content={<CustomTooltip />} />
-                        
                         {/* Línea de referencia para el promedio */}
                         {totalSales > 0 && (
                           <ReferenceLine 
@@ -325,7 +304,6 @@ export default function POSSalesByPersonChart() {
                             strokeWidth={1}
                           />
                         )}
-                        
                         <Bar 
                           dataKey="total_sales" 
                           radius={[0, 4, 4, 0]}
@@ -351,7 +329,6 @@ export default function POSSalesByPersonChart() {
                   </div>
                 )}
               </div>
-
               {/* Lista detallada de vendedores */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Ranking Detallado</h3>
@@ -369,14 +346,12 @@ export default function POSSalesByPersonChart() {
                             </span>
                           )}
                         </div>
-                        
                         {/* Indicador de color */}
                         <div 
                           className="w-4 h-4 rounded-full flex-shrink-0"
                           style={{ backgroundColor: SALESPERSON_COLORS[index % SALESPERSON_COLORS.length] }}
                         />
                       </div>
-                      
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-medium text-sm truncate" title={person.salesperson}>
@@ -389,7 +364,6 @@ export default function POSSalesByPersonChart() {
                             {person.percentage.toFixed(1)}%
                           </Badge>
                         </div>
-                        
                         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                           <div>
                             <span className="block font-medium text-blue-600">
@@ -416,7 +390,6 @@ export default function POSSalesByPersonChart() {
                 </div>
               </div>
             </div>
-
             {/* Análisis adicional */}
             <div className="pt-4 border-t">
               <div className="grid grid-cols-2 @md/main:grid-cols-4 gap-4 text-sm">

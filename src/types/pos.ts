@@ -11,7 +11,6 @@ export interface POSOrder {
   session_name?: string
   lines_count: number
 }
-
 export interface POSStats {
   totalSales: number
   totalAmount: number
@@ -20,7 +19,6 @@ export interface POSStats {
   totalTransactions: number
   period: string
 }
-
 export interface POSSalesPerson {
   salesperson: string
   total_sales: number
@@ -28,20 +26,17 @@ export interface POSSalesPerson {
   avg_ticket: number
   percentage: number
 }
-
 export interface POSHourlySales {
   hour: number
   sales_count: number
   total_amount: number
 }
-
 export interface POSProductRanking {
   product_name: string
   quantity_sold: number
   total_amount: number
   avg_price: number
 }
-
 export interface POSQueryParams {
   range?: POSTimeRange
   salesperson?: string
@@ -49,6 +44,5 @@ export interface POSQueryParams {
   limit?: string
   date?: string
 }
-
 export type POSOrderState = 'draft' | 'paid' | 'done' | 'invoiced' | 'cancel'
 export type POSTimeRange = 'today' | 'week' | 'month' | 'quarter' | 'year'

@@ -2,35 +2,28 @@
 import db from "@/lib/db"
 import type { QueryResult } from "pg"
 import type { SaleOrder, SalesStats, SalesSummary, SaleOrderState, TimeRange } from "@/types/sales"
-
 export class SalesService {
   // Obtener condición de fecha según el rango
   static getDateCondition(range: TimeRange): string {
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth() + 1
-
     switch (range) {
       case "month":
         return `EXTRACT(MONTH FROM so.date_order) = ${currentMonth} 
                 AND EXTRACT(YEAR FROM so.date_order) = ${currentYear}`
-
       case "quarter":
         const currentQuarter = Math.ceil(currentMonth / 3)
         const quarterStartMonth = (currentQuarter - 1) * 3 + 1
         const quarterEndMonth = currentQuarter * 3
-
         return `EXTRACT(MONTH FROM so.date_order) BETWEEN ${quarterStartMonth} AND ${quarterEndMonth}
                 AND EXTRACT(YEAR FROM so.date_order) = ${currentYear}`
-
       case "year":
         return `EXTRACT(YEAR FROM so.date_order) = ${currentYear}`
-
       default:
         return `EXTRACT(MONTH FROM so.date_order) = ${currentMonth} 
                 AND EXTRACT(YEAR FROM so.date_order) = ${currentYear}`
     }
   }
-
   // Obtener descripción del período
   static getPeriodDescription(range: TimeRange): string {
     const now = new Date()
@@ -40,26 +33,21 @@ export class SalesService {
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
-
     switch (range) {
       case "month":
         return `${monthNames[currentMonth - 1]} ${currentYear}`
-
       case "quarter":
         const currentQuarter = Math.ceil(currentMonth / 3)
         const quarterNames = {
           1: "Q1", 2: "Q2", 3: "Q3", 4: "Q4"
         }
         return `${quarterNames[currentQuarter as keyof typeof quarterNames]} ${currentYear}`
-
       case "year":
         return `${currentYear}`
-
       default:
         return `${monthNames[currentMonth - 1]} ${currentYear}`
     }
   }
-
   // Obtener órdenes de venta con filtros
   static async getSaleOrders(
     range: TimeRange,
@@ -71,12 +59,10 @@ export class SalesService {
   ): Promise<{ data: SaleOrder[], meta: any }> {
     const dateCondition = this.getDateCondition(range)
     const offset = (page - 1) * limit
-
     let stateCondition = ""
     if (state !== 'all') {
       stateCondition = `AND so.state = '${state}'`
     }
-
     // Vendedores
     let userCondition = ""
     if (salespersonId) {
@@ -86,7 +72,6 @@ export class SalesService {
       const allowedUserIds = [11, 12, 13, 37]
       userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
     }
-
     // Series (vía facturas asociadas)
     let journalCondition = ""
     if (journalId) {
@@ -96,7 +81,6 @@ export class SalesService {
         AND am.journal_id = ${journalId}
       )`
     }
-
     const baseQuery = `
       SELECT 
         so.id,
@@ -120,7 +104,6 @@ export class SalesService {
         ${journalCondition}
       ORDER BY so.date_order DESC
     `
-
     // Obtener total para paginación
     const countQuery = `
       SELECT COUNT(*) as total
@@ -130,16 +113,13 @@ export class SalesService {
         ${userCondition}
         ${journalCondition}
     `
-
     try {
       const [countResult, dataResult] = await Promise.all([
         db.query(countQuery),
         db.query(`${baseQuery} OFFSET $1 LIMIT $2`, [offset, limit])
       ])
-
       const total = parseInt(countResult.rows[0].total, 10)
       const totalPages = Math.ceil(total / limit)
-
       // Procesar datos
       const processedData = dataResult.rows.map(row => ({
         id: parseInt(String(row.id), 10),
@@ -153,7 +133,6 @@ export class SalesService {
         validity_date: row.validity_date ? String(row.validity_date) : undefined,
         commitment_date: row.commitment_date ? String(row.commitment_date) : undefined
       }))
-
       return {
         data: processedData,
         meta: {
@@ -165,7 +144,6 @@ export class SalesService {
       }
     } catch (error) {
       console.error("Error in getSaleOrders:", error)
-
       // Fallback query más simple
       const simpleQuery = `
         SELECT 
@@ -185,7 +163,6 @@ export class SalesService {
         ORDER BY so.date_order DESC
         OFFSET $1 LIMIT $2
       `
-
       const simpleCountQuery = `
         SELECT COUNT(*) as total
         FROM sale_order so
@@ -193,15 +170,12 @@ export class SalesService {
           ${stateCondition}
           ${userCondition}
       `
-
       const [countResult, dataResult] = await Promise.all([
         db.query(simpleCountQuery),
         db.query(simpleQuery, [offset, limit])
       ])
-
       const total = parseInt(countResult.rows[0].total, 10)
       const totalPages = Math.ceil(total / limit)
-
       const processedData = dataResult.rows.map(row => ({
         id: parseInt(String(row.id), 10),
         name: String(row.name || ''),
@@ -214,7 +188,6 @@ export class SalesService {
         validity_date: undefined,
         commitment_date: undefined
       }))
-
       return {
         data: processedData,
         meta: {
@@ -226,15 +199,12 @@ export class SalesService {
       }
     }
   }
-
   // Obtener estadísticas de ventas
   static async getSalesStats(range: TimeRange): Promise<SalesStats> {
     const dateCondition = this.getDateCondition(range)
-
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
-
     const query = `
       SELECT 
         COUNT(*) FILTER (WHERE state IN ('draft', 'sent')) AS total_quotations,
@@ -247,14 +217,11 @@ export class SalesService {
       WHERE ${dateCondition}
         ${userCondition}
     `
-
     const result = await db.query(query)
     const row = result.rows[0]
-
     const totalQuotations = parseInt(String(row.total_quotations) || '0', 10)
     const confirmedSales = parseInt(String(row.confirmed_sales) || '0', 10)
     const conversionRate = totalQuotations > 0 ? (confirmedSales / totalQuotations) * 100 : 0
-
     return {
       totalQuotations,
       confirmedSales,
@@ -266,15 +233,12 @@ export class SalesService {
       period: this.getPeriodDescription(range)
     }
   }
-
   // Obtener resumen de ventas
   static async getSalesSummary(range: TimeRange): Promise<SalesSummary> {
     const dateCondition = this.getDateCondition(range)
-
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
-
     const query = `
       SELECT 
         state,
@@ -285,9 +249,7 @@ export class SalesService {
         ${userCondition}
       GROUP BY state
     `
-
     const result = await db.query(query)
-
     // Inicializar estructura
     const summary: SalesSummary = {
       quotations: {
@@ -305,13 +267,11 @@ export class SalesService {
         lost: 0
       }
     }
-
     // Procesar resultados
     result.rows.forEach(row => {
       const state = row.state as SaleOrderState
       const count = parseInt(String(row.count), 10)
       const amount = parseFloat(String(row.amount) || '0')
-
       switch (state) {
         case 'draft':
           summary.quotations.count += count
@@ -338,25 +298,20 @@ export class SalesService {
           break
       }
     })
-
     // Calcular tasa de conversión
     const totalOpportunities = summary.quotations.count + summary.sales.count
     summary.conversion.rate = totalOpportunities > 0
       ? (summary.sales.count / totalOpportunities) * 100
       : 0
-
     return summary
   }
-
   // Obtener cotizaciones (estados draft y sent)
   static async getQuotations(range: TimeRange, limit: number = 10, page: number = 1) {
     const dateCondition = this.getDateCondition(range)
     const offset = (page - 1) * 10 // 10 por página fijo para cotizaciones
-
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
-
     const baseQuery = `
       SELECT 
         so.id,
@@ -376,7 +331,6 @@ export class SalesService {
         ${userCondition}
       ORDER BY so.date_order DESC
     `
-
     // Obtener total para paginación
     const countQuery = `
       SELECT COUNT(*) as total
@@ -385,16 +339,13 @@ export class SalesService {
         AND so.state IN ('draft', 'sent')
         ${userCondition}
     `
-
     try {
       const [countResult, dataResult] = await Promise.all([
         db.query(countQuery),
         db.query(`${baseQuery} OFFSET $1 LIMIT $2`, [offset, limit])
       ])
-
       const total = parseInt(countResult.rows[0].total, 10)
       const totalPages = Math.ceil(total / 10)
-
       // Procesar datos
       const processedData = dataResult.rows.map(row => ({
         id: parseInt(String(row.id), 10),
@@ -406,7 +357,6 @@ export class SalesService {
         user_name: row.user_name ? String(row.user_name) : undefined,
         validity_date: row.validity_date ? String(row.validity_date) : undefined
       }))
-
       return {
         data: processedData,
         meta: {
@@ -418,7 +368,6 @@ export class SalesService {
       }
     } catch (error) {
       console.error("Error in getQuotations:", error)
-
       // Fallback query más simple
       const simpleQuery = `
         SELECT 
@@ -439,7 +388,6 @@ export class SalesService {
         ORDER BY so.date_order DESC
         OFFSET $1 LIMIT $2
       `
-
       const simpleCountQuery = `
         SELECT COUNT(*) as total
         FROM sale_order so
@@ -447,15 +395,12 @@ export class SalesService {
           AND so.state IN ('draft', 'sent')
           ${userCondition}
       `
-
       const [countResult, dataResult] = await Promise.all([
         db.query(simpleCountQuery),
         db.query(simpleQuery, [offset, limit])
       ])
-
       const total = parseInt(countResult.rows[0].total, 10)
       const totalPages = Math.ceil(total / 10)
-
       const processedData = dataResult.rows.map(row => ({
         id: parseInt(String(row.id), 10),
         name: String(row.name || ''),
@@ -466,7 +411,6 @@ export class SalesService {
         user_name: row.user_name ? String(row.user_name) : undefined,
         validity_date: row.validity_date ? String(row.validity_date) : undefined
       }))
-
       return {
         data: processedData,
         meta: {
@@ -480,7 +424,6 @@ export class SalesService {
   }
   static async getTopSalespeople(range: TimeRange, limit: number = 5) {
     const dateCondition = this.getDateCondition(range)
-
     const query = `
       SELECT 
         ru.name AS salesperson_name,
@@ -495,9 +438,7 @@ export class SalesService {
       ORDER BY confirmed_amount DESC NULLS LAST
       LIMIT $1
     `
-
     const result = await db.query(query, [limit])
-
     return result.rows.map(row => ({
       salesperson_name: String(row.salesperson_name || ''),
       total_orders: parseInt(String(row.total_orders), 10),
@@ -509,18 +450,14 @@ export class SalesService {
         : 0
     }))
   }
-
   static async getSalesEvolution(range: TimeRange): Promise<{ data: any[] }> {
     const dateCondition = this.getDateCondition(range)
-
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
-
     let groupBy = ""
     let selectField = ""
     let orderField = ""
-
     switch (range) {
       case "month":
         selectField = "EXTRACT(DAY FROM so.date_order) as period"
@@ -538,7 +475,6 @@ export class SalesService {
         orderField = "period"
         break
     }
-
     const query = `
     SELECT 
       ${selectField},
@@ -552,9 +488,7 @@ export class SalesService {
     GROUP BY ${groupBy}
     ORDER BY ${orderField}
   `
-
     const result = await db.query(query)
-
     // Procesar los resultados para asegurar tipos correctos
     const processedData = result.rows.map(row => ({
       period: parseInt(String(row.period), 10),
@@ -562,21 +496,16 @@ export class SalesService {
       total_amount: parseFloat(String(row.total_amount) || '0'),
       avg_ticket: parseFloat(String(row.avg_ticket) || '0')
     }))
-
     return { data: processedData }
   }
-
   static async getTicketEvolution(range: TimeRange): Promise<{ data: any[] }> {
     const dateCondition = this.getDateCondition(range)
-
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
-
     let groupBy = ""
     let selectField = ""
     let orderField = ""
-
     switch (range) {
       case "month":
         selectField = "EXTRACT(DAY FROM so.date_order) as period"
@@ -594,7 +523,6 @@ export class SalesService {
         orderField = "period"
         break
     }
-
     const query = `
     SELECT 
       ${selectField},
@@ -609,9 +537,7 @@ export class SalesService {
     GROUP BY ${groupBy}
     ORDER BY ${orderField}
   `
-
     const result = await db.query(query)
-
     // Procesar los resultados para asegurar tipos correctos
     const processedData = result.rows.map(row => ({
       period: parseInt(String(row.period), 10),
@@ -620,7 +546,6 @@ export class SalesService {
       min_ticket: parseFloat(String(row.min_ticket) || '0'),
       max_ticket: parseFloat(String(row.max_ticket) || '0')
     }))
-
     return { data: processedData }
   }
 }

@@ -6,7 +6,6 @@ import {
   subMonths,
   format,
 } from "date-fns"
-
 export async function GET() {
   try {
     const now = new Date()
@@ -14,7 +13,6 @@ export async function GET() {
     const endThisMonth = endOfMonth(now)
     const startLastMonth = startOfMonth(subMonths(now, 1))
     const endLastMonth = endOfMonth(subMonths(now, 1))
-
     // Obtener total de vendedores activos (usuarios que han hecho ventas este mes)
     const totalSalesmenResult = await db.query(
       `SELECT COUNT(DISTINCT am.invoice_user_id) AS total 
@@ -26,7 +24,6 @@ export async function GET() {
       [startThisMonth, endThisMonth]
     )
     const totalSalesmen = parseInt(totalSalesmenResult.rows[0].total, 10)
-
     // Ventas totales del mes actual (facturas - notas de crédito)
     const currentMonthSalesResult = await db.query(
       `SELECT 
@@ -46,7 +43,6 @@ export async function GET() {
     const currentMonthSales = parseFloat(currentMonthSalesResult.rows[0].total_sales) || 0
     const currentMonthInvoices = parseInt(currentMonthSalesResult.rows[0].total_invoices, 10)
     const currentMonthCustomers = parseInt(currentMonthSalesResult.rows[0].customers_served, 10)
-
     // Ventas del mes anterior para comparación (facturas - notas de crédito)
     const lastMonthSalesResult = await db.query(
       `SELECT SUM(CASE 
@@ -61,7 +57,6 @@ export async function GET() {
       [startLastMonth, endLastMonth]
     )
     const lastMonthSales = parseFloat(lastMonthSalesResult.rows[0].total_sales) || 0
-
     // Top vendedor del mes (con ingresos reales)
     const topSalesmanResult = await db.query(
       `SELECT 
@@ -96,7 +91,6 @@ export async function GET() {
       invoices_count: 0,
       customers_count: 0
     }
-
     // Promedio de ventas por vendedor (ingresos reales)
     const avgSalesPerSalesmanResult = await db.query(
       `SELECT AVG(salesman_sales.total_sales) AS avg_sales
@@ -123,7 +117,6 @@ export async function GET() {
       [startThisMonth, endThisMonth]
     )
     const avgSalesPerSalesman = parseFloat(avgSalesPerSalesmanResult.rows[0].avg_sales) || 0
-
     // Ranking de vendedores (top 5) con ingresos reales
     const salesmenRankingResult = await db.query(
       `SELECT 
@@ -153,7 +146,6 @@ export async function GET() {
        LIMIT 5`,
       [startThisMonth, endThisMonth]
     )
-
     // Objetivos vs Resultados con ingresos reales
     const salesTargetResult = await db.query(
       `SELECT 
@@ -180,7 +172,6 @@ export async function GET() {
        ORDER BY achieved DESC`,
       [startThisMonth, endThisMonth]
     )
-
     // Conversión de leads a ventas (solo considerando facturas)
     const conversionRateResult = await db.query(
       `SELECT 
@@ -202,10 +193,8 @@ export async function GET() {
        ORDER BY conversion_rate DESC NULLS LAST`,
       [startThisMonth, endThisMonth]
     )
-
     // Cálculo de cambios porcentuales
     const salesChange = calculatePercentageChange(lastMonthSales, currentMonthSales)
-
     return NextResponse.json({
       success: true,
       data: {
@@ -217,7 +206,6 @@ export async function GET() {
         currentMonthCustomers,
         avgSalesPerSalesman,
         month: format(startThisMonth, "MMMM yyyy"),
-        
         // Top performer
         topSalesman: {
           name: topSalesman.salesman_name,
@@ -225,7 +213,6 @@ export async function GET() {
           invoices: parseInt(topSalesman.invoices_count),
           customers: parseInt(topSalesman.customers_count)
         },
-        
         // Rankings y comparaciones
         salesmenRanking: salesmenRankingResult.rows.map(row => ({
           name: row.salesman_name,
@@ -234,7 +221,6 @@ export async function GET() {
           customers: parseInt(row.customers_count),
           avgTicket: parseFloat(row.avg_ticket) || 0
         })),
-        
         // Objetivos vs resultados
         targetsVsResults: salesTargetResult.rows.map(row => ({
           name: row.salesman_name,
@@ -242,7 +228,6 @@ export async function GET() {
           achieved: parseFloat(row.achieved) || 0,
           percentage: row.target > 0 ? ((parseFloat(row.achieved) / parseFloat(row.target)) * 100).toFixed(1) : 0
         })),
-        
         // Tasas de conversión
         conversionRates: conversionRateResult.rows.map(row => ({
           name: row.salesman_name,
@@ -260,7 +245,6 @@ export async function GET() {
     )
   }
 }
-
 function calculatePercentageChange(previous: number, current: number): number {
   if (previous === 0) return current > 0 ? 100 : 0
   return ((current - previous) / previous) * 100

@@ -1,6 +1,5 @@
 // src/components/dashboard/sales/POSVendorPerformanceChart.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -43,11 +42,9 @@ import {
   Pie,
   Legend
 } from "recharts"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSSalesByPerson } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -55,19 +52,15 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 const VENDOR_COLORS = [
   "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
   "#06B6D4", "#F97316", "#84CC16", "#EC4899", "#6B7280"
 ]
-
 type ChartType = "bar" | "pie"
-
 export default function POSVendorPerformanceChart() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const [chartType, setChartType] = useState<ChartType>("bar")
   const { data, loading, error, refetch } = usePOSSalesByPerson(range)
-
   // Preparar datos para los gráficos
   const chartData = data.map((item, index) => ({
     ...item,
@@ -76,12 +69,10 @@ export default function POSVendorPerformanceChart() {
       ? item.salesperson.substring(0, 15) + "..." 
       : item.salesperson
   }))
-
   // Calcular totales
   const totalSales = data.reduce((sum, item) => sum + item.total_sales, 0)
   const totalAmount = data.reduce((sum, item) => sum + item.total_amount, 0)
   const avgTicket = totalSales > 0 ? totalAmount / totalSales : 0
-
   // Custom tooltip para gráfico de barras
   const CustomBarTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -116,7 +107,6 @@ export default function POSVendorPerformanceChart() {
     }
     return null
   }
-
   // Custom tooltip para gráfico de pastel
   const CustomPieTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -141,7 +131,6 @@ export default function POSVendorPerformanceChart() {
     }
     return null
   }
-
   if (loading) {
     return (
       <Card>
@@ -163,7 +152,6 @@ export default function POSVendorPerformanceChart() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -187,7 +175,6 @@ export default function POSVendorPerformanceChart() {
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -201,7 +188,6 @@ export default function POSVendorPerformanceChart() {
               Comparativo de desempeño - {data.length} vendedores
             </CardDescription>
           </div>
-          
           <div className="flex items-center gap-2">
             <Select value={chartType} onValueChange={(value) => setChartType(value as ChartType)}>
               <SelectTrigger className="w-40">
@@ -222,7 +208,6 @@ export default function POSVendorPerformanceChart() {
                 </SelectItem>
               </SelectContent>
             </Select>
-
             <Select value={range} onValueChange={(value) => setRange(value as POSTimeRange)}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Período" />
@@ -235,14 +220,12 @@ export default function POSVendorPerformanceChart() {
                 ))}
               </SelectContent>
             </Select>
-            
             <Button onClick={refetch} variant="outline" size="icon" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-6">
         {data.length > 0 ? (
           <>
@@ -260,7 +243,6 @@ export default function POSVendorPerformanceChart() {
                   </p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -275,7 +257,6 @@ export default function POSVendorPerformanceChart() {
                   </p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -291,7 +272,6 @@ export default function POSVendorPerformanceChart() {
                 </CardContent>
               </Card>
             </div>
-
             {/* Gráfico principal */}
             {chartType === "bar" ? (
               <div className="h-96">
@@ -316,7 +296,6 @@ export default function POSVendorPerformanceChart() {
                       axisLine={false}
                     />
                     <Tooltip content={<CustomBarTooltip />} />
-                    
                     <Bar 
                       dataKey="total_sales" 
                       radius={[8, 8, 0, 0]}
@@ -359,7 +338,6 @@ export default function POSVendorPerformanceChart() {
                 </ResponsiveContainer>
               </div>
             )}
-
             {/* Tabla de rendimiento detallado */}
             <div className="border rounded-lg overflow-hidden">
               <div className="bg-muted px-4 py-2">
@@ -380,7 +358,6 @@ export default function POSVendorPerformanceChart() {
                         #{index + 1}
                       </Badge>
                     </div>
-                    
                     <div className="grid grid-cols-2 @md/main:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground">Ventas</span>
@@ -430,4 +407,3 @@ export default function POSVendorPerformanceChart() {
     </Card>
   )
 }
-

@@ -1,6 +1,5 @@
 // src/components/dashboard/sales/POSVendorOrdersTable.tsx
 "use client"
-
 import {
   Table,
   TableBody,
@@ -51,19 +50,16 @@ import {
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { useState, useMemo } from "react"
-
 // Imports de tipos y hooks
 import type { POSTimeRange, POSOrderState } from "@/types/pos"
 import { usePOSOrders, usePOSSalespersons } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const LIMIT_OPTIONS = [
   { value: "10", label: "10 filas" },
   { value: "20", label: "20 filas" },
   { value: "50", label: "50 filas" },
   { value: "100", label: "100 filas" }
 ]
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -71,12 +67,10 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 interface POSVendorOrdersTableProps {
   selectedVendor?: string
   onVendorChange?: (vendor: string) => void
 }
-
 export default function POSVendorOrdersTable({ 
   selectedVendor, 
   onVendorChange 
@@ -86,16 +80,13 @@ export default function POSVendorOrdersTable({
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState("")
   const [vendor, setVendor] = useState<string>(selectedVendor || "all")
-
   const { data, loading, error, totalPages, total, refetch } = usePOSOrders({
     range,
     page,
     limit,
     salesperson: vendor
   })
-
   const { data: salespersons } = usePOSSalespersons()
-
   const handleVendorChange = (value: string) => {
     setVendor(value)
     setPage(1) // Reset página al cambiar vendedor
@@ -103,7 +94,6 @@ export default function POSVendorOrdersTable({
       onVendorChange(value)
     }
   }
-
   // Memoizar datos filtrados
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
@@ -113,17 +103,14 @@ export default function POSVendorOrdersTable({
       (order.salesperson && order.salesperson.toLowerCase().includes(searchTerm.toLowerCase()))
     )
   }, [data, searchTerm])
-
   const handleLimitChange = (value: string) => {
     setLimit(parseInt(value))
     setPage(1) // Reset a primera página al cambiar límite
   }
-
   const handleRangeChange = (value: POSTimeRange) => {
     setRange(value)
     setPage(1) // Reset a primera página al cambiar rango
   }
-
   const getStateIcon = (state: POSOrderState) => {
     switch (state) {
       case "paid":
@@ -138,7 +125,6 @@ export default function POSVendorOrdersTable({
         return <Receipt className="h-4 w-4" />
     }
   }
-
   const getStateBadgeVariant = (state: POSOrderState): "default" | "secondary" | "destructive" | "outline" => {
     switch (state) {
       case "paid":
@@ -153,7 +139,6 @@ export default function POSVendorOrdersTable({
         return "outline"
     }
   }
-
   const getStateLabel = (state: POSOrderState): string => {
     const labels: Record<POSOrderState, string> = {
       draft: "Borrador",
@@ -164,7 +149,6 @@ export default function POSVendorOrdersTable({
     }
     return labels[state] || state
   }
-
   if (loading && !data.length) {
     return (
       <Card>
@@ -191,7 +175,6 @@ export default function POSVendorOrdersTable({
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -215,7 +198,6 @@ export default function POSVendorOrdersTable({
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -229,13 +211,11 @@ export default function POSVendorOrdersTable({
               Listado de órdenes de punto de venta - {total} registros encontrados
             </CardDescription>
           </div>
-          
           <Button onClick={refetch} variant="outline" size="icon" disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-4">
         {/* Filtros y controles */}
         <div className="flex flex-col @2xl/main:flex-row gap-4">
@@ -248,7 +228,6 @@ export default function POSVendorOrdersTable({
               className="pl-10"
             />
           </div>
-
           {/* Selector de Vendedor */}
           <Select value={vendor} onValueChange={handleVendorChange}>
             <SelectTrigger className="w-full @2xl/main:w-48">
@@ -264,7 +243,6 @@ export default function POSVendorOrdersTable({
               ))}
             </SelectContent>
           </Select>
-
           {/* Selector de período */}
           <Select value={range} onValueChange={(value) => handleRangeChange(value as POSTimeRange)}>
             <SelectTrigger className="w-full @2xl/main:w-40">
@@ -278,7 +256,6 @@ export default function POSVendorOrdersTable({
               ))}
             </SelectContent>
           </Select>
-
           {/* Selector de límite */}
           <Select value={limit.toString()} onValueChange={handleLimitChange}>
             <SelectTrigger className="w-full @2xl/main:w-32">
@@ -293,7 +270,6 @@ export default function POSVendorOrdersTable({
             </SelectContent>
           </Select>
         </div>
-
         {/* Tabla */}
         <div className="rounded-md border overflow-x-auto">
           <Table>
@@ -372,14 +348,12 @@ export default function POSVendorOrdersTable({
             </TableBody>
           </Table>
         </div>
-
         {/* Paginación */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
               Mostrando {((page - 1) * limit) + 1} a {Math.min(page * limit, total)} de {total} registros
             </div>
-            
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -392,7 +366,6 @@ export default function POSVendorOrdersTable({
                     <ChevronsLeftIcon className="h-4 w-4" />
                   </Button>
                 </PaginationItem>
-                
                 <PaginationItem>
                   <Button
                     variant="outline"
@@ -403,13 +376,11 @@ export default function POSVendorOrdersTable({
                     <ChevronLeftIcon className="h-4 w-4" />
                   </Button>
                 </PaginationItem>
-
                 <div className="flex items-center gap-2 px-4">
                   <span className="text-sm">
                     Página {page} de {totalPages}
                   </span>
                 </div>
-
                 <PaginationItem>
                   <Button
                     variant="outline"
@@ -420,7 +391,6 @@ export default function POSVendorOrdersTable({
                     <ChevronRightIcon className="h-4 w-4" />
                   </Button>
                 </PaginationItem>
-                
                 <PaginationItem>
                   <Button
                     variant="outline"
@@ -439,4 +409,3 @@ export default function POSVendorOrdersTable({
     </Card>
   )
 }
-

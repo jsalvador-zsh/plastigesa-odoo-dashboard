@@ -1,6 +1,5 @@
 // src/components/sales/TicketEvolutionChart.tsx
 "use client"
-
 import { useState, useEffect } from "react"
 import {
   Card,
@@ -38,10 +37,8 @@ import {
   TrendingUp,
   TrendingDown
 } from "lucide-react"
-
 import type { TimeRange } from "@/types/sales"
 import { formatCurrency } from "@/utils/chartUtils"
-
 interface TicketData {
   period: number
   avg_ticket: number
@@ -49,32 +46,25 @@ interface TicketData {
   min_ticket: number
   max_ticket: number
 }
-
 const RANGE_OPTIONS = [
   { value: "month", label: "Por día (mes actual)" },
   { value: "quarter", label: "Por semana (trimestre actual)" },
   { value: "year", label: "Por mes (año actual)" }
 ]
-
 export default function TicketEvolutionChart() {
   const [data, setData] = useState<TicketData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [range, setRange] = useState<TimeRange>("month")
-
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-
       const res = await fetch(`/api/reports/ticket-evolution?range=${range}`)
-      
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json = await res.json()
-      
       if (json.success) {
         setData(json.data)
       } else {
@@ -87,27 +77,22 @@ export default function TicketEvolutionChart() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchData()
   }, [range])
-
   // Formatear el label del eje X según el rango de tiempo
   const formatXAxis = (period: number) => {
     if (range === "month") return `Día ${period}`
     if (range === "quarter") return `Sem ${period}`
     return new Date(0, period - 1).toLocaleString('es', { month: 'short' })
   }
-
   // Calcular promedio general y tendencia
   const avgTicket = data.length > 0 
     ? data.reduce((sum, item) => sum + item.avg_ticket, 0) / data.length 
     : 0
-
   const latestTicket = data.length > 0 ? data[data.length - 1]?.avg_ticket : 0
   const previousTicket = data.length > 1 ? data[data.length - 2]?.avg_ticket : 0
   const ticketTrend = previousTicket > 0 ? ((latestTicket - previousTicket) / previousTicket) * 100 : 0
-
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -135,7 +120,6 @@ export default function TicketEvolutionChart() {
     }
     return null
   }
-
   if (loading) {
     return (
       <Card className="@container/card">
@@ -157,7 +141,6 @@ export default function TicketEvolutionChart() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card className="@container/card">
@@ -181,7 +164,6 @@ export default function TicketEvolutionChart() {
       </Card>
     )
   }
-
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -194,7 +176,6 @@ export default function TicketEvolutionChart() {
             <CardDescription>
               Tendencia del valor promedio por orden de venta
             </CardDescription>
-            
             {/* Métricas rápidas */}
             <div className="flex items-center gap-4 pt-2">
               <div className="text-sm">
@@ -216,7 +197,6 @@ export default function TicketEvolutionChart() {
               </div>
             </div>
           </div>
-          
           <div className="flex items-center gap-4">
             <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
               <SelectTrigger className="w-48">
@@ -230,14 +210,12 @@ export default function TicketEvolutionChart() {
                 ))}
               </SelectContent>
             </Select>
-            
             <Button onClick={fetchData} variant="outline" size="default" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-
       <CardContent>
         <div className="h-[350px] w-full">
           {data.length > 0 ? (
@@ -264,7 +242,6 @@ export default function TicketEvolutionChart() {
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                
                 {/* Línea de referencia del promedio */}
                 <ReferenceLine 
                   y={avgTicket} 
@@ -272,7 +249,6 @@ export default function TicketEvolutionChart() {
                   strokeDasharray="5 5"
                   label={{ value: "Promedio", position: "insideTopRight" }}
                 />
-                
                 <Line
                   type="monotone"
                   dataKey="avg_ticket"
@@ -282,7 +258,6 @@ export default function TicketEvolutionChart() {
                   activeDot={{ r: 2, stroke: "var(--chart-3)", strokeWidth: 2 }}
                   name="Ticket Promedio"
                 />
-                
                 <Line
                   type="monotone"
                   dataKey="median_ticket"

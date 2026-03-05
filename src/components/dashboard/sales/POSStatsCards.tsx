@@ -1,6 +1,5 @@
 // src/components/dashboard/pos/POSStatsCards.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -30,11 +29,9 @@ import {
   Receipt,
   Target
 } from "lucide-react"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSStats } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -42,11 +39,9 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 export default function POSStatsCards() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const { data: stats, loading, error, refetch } = usePOSStats(range)
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -71,7 +66,6 @@ export default function POSStatsCards() {
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="space-y-4">
@@ -94,9 +88,7 @@ export default function POSStatsCards() {
       </div>
     )
   }
-
   if (!stats) return null
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -107,7 +99,6 @@ export default function POSStatsCards() {
             Resumen de ventas POS para {stats.period}
           </p>
         </div>
-        
         <div className="flex items-center gap-4">
           <Select value={range} onValueChange={(value) => setRange(value as POSTimeRange)}>
             <SelectTrigger className="w-40">
@@ -121,13 +112,11 @@ export default function POSStatsCards() {
               ))}
             </SelectContent>
           </Select>
-          
           <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-5">
         {/* Total Ventas */}
@@ -148,7 +137,6 @@ export default function POSStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Monto Total */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -169,7 +157,6 @@ export default function POSStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Ticket Promedio */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -201,7 +188,6 @@ export default function POSStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Clientes Únicos */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -223,7 +209,6 @@ export default function POSStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Transacciones */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

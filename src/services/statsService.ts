@@ -2,54 +2,45 @@
 import db from "@/lib/db"
 import type { QueryResult } from "pg"
 import type { TimeRange } from "@/types/dashboard"
-
 export class StatsService {
   // Obtener condiciones de fecha para período actual y anterior
   static getDateConditions(range: TimeRange, month?: number, year?: number): { current: string; previous: string } {
     const now = new Date()
     const currentYear = year || now.getFullYear()
     const currentMonth = month || (now.getMonth() + 1)
-
     switch (range) {
       case "month":
         const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1
         const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear
-
         return {
           current: `EXTRACT(MONTH FROM am.invoice_date) = ${currentMonth} 
                    AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`,
           previous: `EXTRACT(MONTH FROM am.invoice_date) = ${previousMonth} 
                     AND EXTRACT(YEAR FROM am.invoice_date) = ${previousYear}`
         }
-
       case "quarter":
         const currentQuarter = Math.ceil(currentMonth / 3)
         const previousQuarter = currentQuarter === 1 ? 4 : currentQuarter - 1
         const quarterYear = currentQuarter === 1 ? currentYear - 1 : currentYear
-
         const currentQuarterStart = (currentQuarter - 1) * 3 + 1
         const currentQuarterEnd = currentQuarter * 3
         const previousQuarterStart = (previousQuarter - 1) * 3 + 1
         const previousQuarterEnd = previousQuarter * 3
-
         return {
           current: `EXTRACT(MONTH FROM am.invoice_date) BETWEEN ${currentQuarterStart} AND ${currentQuarterEnd}
                    AND EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`,
           previous: `EXTRACT(MONTH FROM am.invoice_date) BETWEEN ${previousQuarterStart} AND ${previousQuarterEnd}
                     AND EXTRACT(YEAR FROM am.invoice_date) = ${quarterYear}`
         }
-
       case "year":
         return {
           current: `EXTRACT(YEAR FROM am.invoice_date) = ${currentYear}`,
           previous: `EXTRACT(YEAR FROM am.invoice_date) = ${currentYear - 1}`
         }
-
       default:
         return this.getDateConditions("month")
     }
   }
-
   // Obtener total de clientes activos
   static async getTotalActiveCustomers(journalId?: number): Promise<number> {
     let journalCondition = ""
@@ -66,7 +57,6 @@ export class StatsService {
     const result = await db.query(query)
     return parseInt(result.rows[0].total, 10)
   }
-
   // Obtener clientes del período
   static async getCustomersByPeriod(dateCondition: string, journalId?: number): Promise<number> {
     let journalCondition = ""
@@ -84,7 +74,6 @@ export class StatsService {
     const result = await db.query(query)
     return parseInt(result.rows[0].count, 10)
   }
-
   // Obtener cliente top del período
   static async getTopCustomer(dateCondition: string, journalId?: number): Promise<{ name: string; amount: number }> {
     let journalCondition = ""
@@ -118,16 +107,13 @@ export class StatsService {
       ORDER BY total_purchased DESC
       LIMIT 1
     `
-
     const result = await db.query(query)
     const topCustomer = result.rows[0] || { customer_name: "N/A", total_purchased: 0 }
-
     return {
       name: String(topCustomer.customer_name),
       amount: parseFloat(String(topCustomer.total_purchased))
     }
   }
-
   // Obtener estadísticas de tickets
   static async getTicketStats(dateCondition: string, journalId?: number): Promise<{ avgTicket: number; invoiceCount: number }> {
     let journalCondition = ""
@@ -144,16 +130,13 @@ export class StatsService {
         AND ${dateCondition}
         ${journalCondition}
     `
-
     const result = await db.query(query)
     const row = result.rows[0] || { avg_ticket: 0, invoice_count: 0 }
-
     return {
       avgTicket: parseFloat(String(row.avg_ticket)) || 0,
       invoiceCount: parseInt(String(row.invoice_count), 10)
     }
   }
-
   // Obtener nuevos clientes (primer compra en el período)
   static async getNewCustomers(dateCondition: string, journalId?: number): Promise<number> {
     let journalCondition = ""
@@ -179,17 +162,14 @@ export class StatsService {
       ) previous_customers ON current_customers.partner_id = previous_customers.partner_id
       WHERE previous_customers.partner_id IS NULL
     `
-
     const result = await db.query(query)
     return parseInt(result.rows[0].count, 10)
   }
-
   // Calcular cambio porcentual
   static calculatePercentageChange(previous: number, current: number): number {
     if (previous === 0) return current > 0 ? 100 : 0
     return ((current - previous) / previous) * 100
   }
-
   // Obtener descripción del período
   static getPeriodDescription(range: TimeRange, month?: number, year?: number): string {
     const now = new Date()
@@ -199,33 +179,27 @@ export class StatsService {
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
-
     switch (range) {
       case "month":
         return `${monthNames[currentMonth - 1]} ${currentYear}`
-
       case "quarter":
         const currentQuarter = Math.ceil(currentMonth / 3)
         const quarterNames = {
           1: "Q1", 2: "Q2", 3: "Q3", 4: "Q4"
         }
         return `${quarterNames[currentQuarter as keyof typeof quarterNames]} ${currentYear}`
-
       case "year":
         return `${currentYear}`
-
       default:
         return `${monthNames[currentMonth - 1]} ${currentYear}`
     }
   }
-
   // Obtener evolución de nuevos clientes (últimos 12 meses)
   static async getNewCustomersEvolution(journalId?: number): Promise<{ month: string, count: number }[]> {
     let journalCondition = ""
     if (journalId) {
       journalCondition = `AND am.journal_id = ${journalId}`
     }
-
     const query = `
       WITH RECURSIVE months AS (
         SELECT date_trunc('month', CURRENT_DATE) - INTERVAL '11 months' as month_date
@@ -252,7 +226,6 @@ export class StatsService {
       GROUP BY m.month_date
       ORDER BY m.month_date
     `
-
     const result = await db.query(query)
     return result.rows.map(row => ({
       month: String(row.month),

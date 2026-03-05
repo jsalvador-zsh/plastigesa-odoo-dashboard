@@ -1,5 +1,4 @@
 "use client"
-
 import {
   Table,
   TableBody,
@@ -42,7 +41,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
-
 // Imports de tipos y utilidades
 import type { Customer, TimeRange, TopLimit } from "@/types/dashboard"
 import { useCustomers } from "@/hooks/useCustomers"
@@ -52,7 +50,6 @@ import {
   LIMIT_OPTIONS,
   getCurrentPeriodDescription
 } from "@/utils/chartUtils"
-
 export default function TopCustomersTable() {
   const [range, setRange] = useState<TimeRange>("month")
   const [limit, setLimit] = useState<TopLimit>("10")
@@ -61,7 +58,6 @@ export default function TopCustomersTable() {
   const [journalId, setJournalId] = useState<number | undefined>(undefined)
   const [journals, setJournals] = useState<Journal[]>([])
   const [isExporting, setIsExporting] = useState(false)
-
   // Cargar diarios al montar el componente
   useEffect(() => {
     fetch('/api/reports/journals')
@@ -73,7 +69,6 @@ export default function TopCustomersTable() {
       })
       .catch(err => console.error("Error loading journals:", err))
   }, [])
-
   // Usar el custom hook
   const { data, loading, error, totalPages, refetch } = useCustomers({
     range,
@@ -81,7 +76,6 @@ export default function TopCustomersTable() {
     page,
     journalId
   })
-
   // Memoizar los datos filtrados para mejor performance
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
@@ -89,35 +83,28 @@ export default function TopCustomersTable() {
       customer.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [data, searchTerm])
-
   const handleLimitChange = (value: string) => {
     setLimit(value as TopLimit)
     setPage(1)
   }
-
   const handleRangeChange = (value: string) => {
     setRange(value as TimeRange)
     setPage(1)
   }
-
   const handleSearchChange = (value: string) => {
     // No resetear página aquí porque el filtro es del lado cliente
   }
-
   const handleJournalChange = (value: string) => {
     setJournalId(value === 'all' ? undefined : parseInt(value, 10))
     setPage(1)
   }
-
   const handleExport = async () => {
     try {
       setIsExporting(true)
       let url = `/api/reports/top-customers?range=${range}&limit=1000&page=1`
       if (journalId) url += `&journal_id=${journalId}`
-
       const res = await fetch(url)
       const json = await res.json()
-
       if (json.success) {
         const exportData = json.data.map((customer: any) => ({
           'Cliente': customer.customer_name,
@@ -134,7 +121,6 @@ export default function TopCustomersTable() {
       setIsExporting(false)
     }
   }
-
   // Loading state
   if (loading) {
     return (
@@ -165,7 +151,6 @@ export default function TopCustomersTable() {
       </div>
     )
   }
-
   // Error state
   if (error) {
     return (
@@ -193,7 +178,6 @@ export default function TopCustomersTable() {
       </div>
     )
   }
-
   return (
     <div className="space-y-4">
       <Card className="@container/card">
@@ -205,7 +189,6 @@ export default function TopCustomersTable() {
                 Los clientes con mayores compras en {getCurrentPeriodDescription(range).toLowerCase()}
               </CardDescription>
             </div>
-
             <div className="flex flex-col gap-2 @md/main:items-end">
               <div className="flex gap-2">
                 <Select value={range} onValueChange={handleRangeChange}>
@@ -220,7 +203,6 @@ export default function TopCustomersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={limit.toString()} onValueChange={handleLimitChange}>
                   <SelectTrigger className="w-[120px]">
                     <SelectValue placeholder="Mostrar" />
@@ -233,7 +215,6 @@ export default function TopCustomersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={journalId?.toString() || 'all'} onValueChange={handleJournalChange}>
                   <SelectTrigger className="w-[160px]">
                     <SelectValue placeholder="Serie/Diario" />
@@ -247,7 +228,6 @@ export default function TopCustomersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Button
                   onClick={refetch}
                   variant="outline"
@@ -256,7 +236,6 @@ export default function TopCustomersTable() {
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
-
                 <Button
                   id="tour-export-button"
                   onClick={handleExport}
@@ -273,7 +252,6 @@ export default function TopCustomersTable() {
                   Exportar
                 </Button>
               </div>
-
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="w-fit">
                   {data.length} clientes
@@ -287,7 +265,6 @@ export default function TopCustomersTable() {
             </div>
           </div>
         </CardHeader>
-
         <CardContent className="space-y-4">
           {/* Barra de búsqueda */}
           <div className="relative">
@@ -299,7 +276,6 @@ export default function TopCustomersTable() {
               className="pl-9"
             />
           </div>
-
           {/* Tabla */}
           <div className="rounded-lg border">
             <Table>
@@ -381,7 +357,6 @@ export default function TopCustomersTable() {
               </TableBody>
             </Table>
           </div>
-
           {/* Paginación */}
           {totalPages > 1 && !searchTerm && (
             <div className="flex items-center justify-between">
@@ -443,7 +418,6 @@ export default function TopCustomersTable() {
               </Pagination>
             </div>
           )}
-
           {/* Mensaje de filtro activo */}
           {searchTerm && (
             <div className="text-center text-sm text-muted-foreground border-t pt-3">

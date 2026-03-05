@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { 
   Card, 
@@ -12,24 +11,20 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
 import { TargetIcon, TrendingUpIcon, CheckCircleIcon, AlertCircleIcon, XCircleIcon } from "lucide-react"
-
 interface TargetResult {
   name: string
   target: number
   achieved: number
   percentage: string
 }
-
 export default function SalesTargetsTable() {
   const [data, setData] = useState<TargetResult[]>([])
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch("/api/reports/sales-team-stats")
         const json = await res.json()
-        
         if (json.success) {
           setData(json.data.targetsVsResults)
         }
@@ -39,10 +34,8 @@ export default function SalesTargetsTable() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [])
-
   if (loading) {
     return (
       <Card>
@@ -60,7 +53,6 @@ export default function SalesTargetsTable() {
       </Card>
     )
   }
-
   // Si no hay objetivos definidos, mostrar mensaje
   if (data.every(item => item.target === 0)) {
     return (
@@ -88,14 +80,12 @@ export default function SalesTargetsTable() {
       </Card>
     )
   }
-
   const getStatusIcon = (percentage: number) => {
     if (percentage >= 100) return <CheckCircleIcon className="size-4 text-green-500" />
     if (percentage >= 75) return <TrendingUpIcon className="size-4 text-yellow-500" />
     if (percentage >= 50) return <AlertCircleIcon className="size-4 text-orange-500" />
     return <XCircleIcon className="size-4 text-red-500" />
   }
-
   const getStatusBadge = (percentage: number) => {
     if (percentage >= 100) {
       return (
@@ -128,13 +118,11 @@ export default function SalesTargetsTable() {
       </Badge>
     )
   }
-
   // Calcular estadísticas generales
   const totalTarget = data.reduce((sum, item) => sum + item.target, 0)
   const totalAchieved = data.reduce((sum, item) => sum + item.achieved, 0)
   const overallPercentage = totalTarget > 0 ? (totalAchieved / totalTarget) * 100 : 0
   const vendedoresConObjetivoCumplido = data.filter(item => parseFloat(item.percentage) >= 100).length
-
   return (
     <Card>
       <CardHeader>
@@ -174,13 +162,11 @@ export default function SalesTargetsTable() {
             </div>
           </div>
         </div>
-
         {/* Lista de vendedores */}
         <div className="space-y-4">
           {data.map((result, index) => {
             const percentage = parseFloat(result.percentage)
             const remaining = Math.max(0, result.target - result.achieved)
-            
             return (
               <div key={index} className="border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
                 <div className="flex items-center justify-between mb-3">
@@ -200,7 +186,6 @@ export default function SalesTargetsTable() {
                     {getStatusBadge(percentage)}
                   </div>
                 </div>
-                
                 {/* Barra de progreso visual */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-muted-foreground">
@@ -227,7 +212,6 @@ export default function SalesTargetsTable() {
             )
           })}
         </div>
-
         {/* Mensaje motivacional */}
         <div className="mt-6 pt-4 border-t border-border text-center">
           <p className="text-sm text-muted-foreground">

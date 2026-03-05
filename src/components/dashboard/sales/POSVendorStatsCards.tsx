@@ -1,6 +1,5 @@
 // src/components/dashboard/sales/POSVendorStatsCards.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -31,11 +30,9 @@ import {
   Target,
   User
 } from "lucide-react"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSVendorStats, usePOSSalespersons } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -43,29 +40,24 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 interface POSVendorStatsCardsProps {
   selectedVendor?: string
   onVendorChange?: (vendor: string) => void
 }
-
 export default function POSVendorStatsCards({ 
   selectedVendor, 
   onVendorChange 
 }: POSVendorStatsCardsProps) {
   const [range, setRange] = useState<POSTimeRange>("today")
   const [vendor, setVendor] = useState<string>(selectedVendor || "all")
-  
   const { data: stats, loading, error, refetch } = usePOSVendorStats(range, vendor)
   const { data: salespersons } = usePOSSalespersons()
-
   const handleVendorChange = (value: string) => {
     setVendor(value)
     if (onVendorChange) {
       onVendorChange(value)
     }
   }
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -93,7 +85,6 @@ export default function POSVendorStatsCards({
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="space-y-4">
@@ -116,9 +107,7 @@ export default function POSVendorStatsCards({
       </div>
     )
   }
-
   if (!stats) return null
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -129,7 +118,6 @@ export default function POSVendorStatsCards({
             Resumen de ventas POS para {stats.period}
           </p>
         </div>
-        
         <div className="flex items-center gap-2 flex-wrap">
           {/* Selector de vendedor */}
           <Select value={vendor} onValueChange={handleVendorChange}>
@@ -146,7 +134,6 @@ export default function POSVendorStatsCards({
               ))}
             </SelectContent>
           </Select>
-
           {/* Selector de período */}
           <Select value={range} onValueChange={(value) => setRange(value as POSTimeRange)}>
             <SelectTrigger className="w-40">
@@ -160,13 +147,11 @@ export default function POSVendorStatsCards({
               ))}
             </SelectContent>
           </Select>
-          
           <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-5">
         {/* Total Ventas */}
@@ -187,7 +172,6 @@ export default function POSVendorStatsCards({
             </div>
           </CardContent>
         </Card>
-
         {/* Monto Total */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -208,7 +192,6 @@ export default function POSVendorStatsCards({
             </div>
           </CardContent>
         </Card>
-
         {/* Ticket Promedio */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -240,7 +223,6 @@ export default function POSVendorStatsCards({
             </div>
           </CardContent>
         </Card>
-
         {/* Clientes Únicos */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -262,7 +244,6 @@ export default function POSVendorStatsCards({
             </div>
           </CardContent>
         </Card>
-
         {/* Transacciones */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -285,4 +266,3 @@ export default function POSVendorStatsCards({
     </div>
   )
 }
-

@@ -2,7 +2,6 @@
 import db from "@/lib/db"
 import type { QueryResult } from "pg"
 import type { InactiveCustomer, InactivityPeriod } from "@/types/inactive"
-
 export class InactiveCustomersService {
   // Convertir período a intervalo SQL
   static getInactivityInterval(period: InactivityPeriod): string {
@@ -13,7 +12,6 @@ export class InactiveCustomersService {
     }
     return intervals[period] || intervals["3_months"]
   }
-
   // Obtener descripción del período
   static getPeriodDescription(period: InactivityPeriod): string {
     const descriptions = {
@@ -23,11 +21,9 @@ export class InactiveCustomersService {
     }
     return descriptions[period] || descriptions["3_months"]
   }
-
   // Obtener total de clientes inactivos
   static async getTotalInactiveCustomers(period: InactivityPeriod): Promise<number> {
     const interval = this.getInactivityInterval(period)
-    
     const query = `
       SELECT COUNT(*) AS total
       FROM (
@@ -40,11 +36,9 @@ export class InactiveCustomersService {
         HAVING MAX(am.invoice_date) <= CURRENT_DATE - INTERVAL '${interval}'
       ) AS sub
     `
-    
     const result = await db.query(query)
     return parseInt(result.rows[0].total, 10)
   }
-
   // Obtener clientes inactivos con paginación
   static async getInactiveCustomers(
     period: InactivityPeriod,
@@ -54,7 +48,6 @@ export class InactiveCustomersService {
   ): Promise<{ data: InactiveCustomer[], meta?: any }> {
     const interval = this.getInactivityInterval(period)
     const offset = (page - 1) * limit
-
     const baseQuery = `
       SELECT
         rp.name AS customer_name,
@@ -86,24 +79,18 @@ export class InactiveCustomersService {
         ), 0) > 0
       ORDER BY last_purchase ASC
     `
-
     let result: QueryResult<InactiveCustomer>
     let total = 0
-    
     if (all) {
       result = await db.query(baseQuery)
     } else {
       // Obtener total para paginación
       total = await this.getTotalInactiveCustomers(period)
-      
       // Obtener datos paginados
       result = await db.query(`${baseQuery} OFFSET $1 LIMIT $2`, [offset, limit])
     }
-
     // Procesar datos
     const processedData = result.rows.map(row => {
-      console.log("Raw row data:", row) // Debug temporal
-      
       return {
         customer_name: String(row.customer_name || ''),
         invoice_count: parseInt(String(row.invoice_count) || '0', 10),
@@ -115,13 +102,10 @@ export class InactiveCustomersService {
         email: row.email ? String(row.email) : null
       }
     })
-
     if (all) {
       return { data: processedData }
     }
-
     const totalPages = Math.ceil(total / limit)
-    
     return {
       data: processedData,
       meta: {

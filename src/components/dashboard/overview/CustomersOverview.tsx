@@ -1,16 +1,13 @@
 // src/components/dashboard/overview/CustomersOverview.tsx
 "use client"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Users, TrendingUp, ShoppingCart, DollarSign } from "lucide-react"
 import { useCustomers } from "@/hooks/useCustomers"
 import { formatCurrency } from "@/utils/chartUtils"
 import Link from "next/link"
-
 export default function CustomersOverview() {
   const { data, loading } = useCustomers({ range: 'month', limit: "10", page: 1 })
-
   if (loading) {
     return (
       <Card>
@@ -25,13 +22,11 @@ export default function CustomersOverview() {
       </Card>
     )
   }
-
   // Calcular estadísticas simples (solo los primeros 5)
   const topCustomers = data.slice(0, 5)
   const totalPurchases = topCustomers.reduce((sum, c) => sum + (c.invoice_count || 0), 0)
   const totalAmount = topCustomers.reduce((sum, c) => sum + c.total_purchased, 0)
   const avgTicket = totalPurchases > 0 ? totalAmount / totalPurchases : 0
-
   return (
     <Link href="/dashboard/customers/customer-analytics">
       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -77,4 +72,3 @@ export default function CustomersOverview() {
     </Link>
   )
 }
-

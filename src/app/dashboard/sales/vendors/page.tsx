@@ -7,7 +7,6 @@ import SalesDistributionChart from "@/components/dashboard/sales/SalesDistributi
 import SalesPerformanceTable from "@/components/dashboard/sales/SalesPerformanceTable"
 import SalesTargetsTable from "@/components/dashboard/sales/SalesTargetsvsResultsTable"
 import POSSalesByPersonChart from "@/components/dashboard/sales/POSSalesByPersonChart"
-
 export default function DashboardPage() {
   return (
     <SidebarProvider>

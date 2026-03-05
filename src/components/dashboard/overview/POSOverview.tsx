@@ -1,16 +1,13 @@
 // src/components/dashboard/overview/POSOverview.tsx
 "use client"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Store, Receipt, DollarSign, Users } from "lucide-react"
 import { usePOSStats } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
 import Link from "next/link"
-
 export default function POSOverview() {
   const { data: stats, loading } = usePOSStats('today')
-
   if (loading) {
     return (
       <Card>
@@ -25,7 +22,6 @@ export default function POSOverview() {
       </Card>
     )
   }
-
   return (
     <Link href="/dashboard/sales/daily-sales">
       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -68,4 +64,3 @@ export default function POSOverview() {
     </Link>
   )
 }
-

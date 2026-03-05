@@ -4,12 +4,9 @@ import CustomerStats from "@/components/dashboard/customers/CustomerStats"
 import TopCustomersChart from "@/components/dashboard/customers/TopCustomersChart"
 import TopCustomersTable from "@/components/dashboard/customers/TopCustomersTable"
 import NewCustomersEvolutionChart from "@/components/dashboard/customers/NewCustomersEvolutionChart"
-
 import { SiteHeader } from "@/components/layout/site-header"
 import LatestPurchasesTable from "@/components/dashboard/customers/LatestPurchasesTable"
-
 export default async function DashboardPage() {
-
   return (
     <SidebarProvider>
       <AppSidebar />

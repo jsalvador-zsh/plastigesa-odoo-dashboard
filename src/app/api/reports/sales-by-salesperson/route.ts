@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import db from "@/lib/db"
 import { subMonths, startOfMonth } from "date-fns"
-
 interface SalesBySalesperson {
   period: string
   salesperson_id: number
   salesperson_name: string
   total: number
 }
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const range = searchParams.get("range") || "month" // 'month' | 'quarter' | 'year'
-    
     // Ajusta el número de periodos según el rango
     const periodCount = range === "year" ? 12 : range === "quarter" ? 6 : 6
     const dateFrom = subMonths(new Date(), periodCount)
     const fromStr = startOfMonth(dateFrom).toISOString().split("T")[0]
-    
  const result = await db.query(`
       WITH sales_data AS (
         SELECT 
@@ -63,31 +59,21 @@ export async function GET(req: NextRequest) {
         AND total != 0
       ORDER BY period ASC, total DESC;
     `, [range, fromStr])
-
     const data: SalesBySalesperson[] = result.rows.map(row => ({
       period: row.period,
       salesperson_id: parseInt(row.salesperson_id) || 0,
       salesperson_name: row.salesperson_name || 'Sin Asignar',
       total: parseFloat(row.total) || 0
     }))
-
     // Debug info
-    console.log(`Sales by salesperson data for range ${range}:`)
-    console.log("Total records:", data.length)
-    
     // Mostrar vendedores únicos
     const uniqueSalespeople = [...new Set(data.map(d => d.salesperson_name))]
-    console.log("Unique salespeople:", uniqueSalespeople)
-    
     // Totales por vendedor para debug
     const totalsBySalesperson = data.reduce((acc, curr) => {
       acc[curr.salesperson_name] = (acc[curr.salesperson_name] || 0) + curr.total
       return acc
     }, {} as Record<string, number>)
-    console.log("Totals by salesperson:", totalsBySalesperson)
-
     return NextResponse.json({ success: true, data })
-    
   } catch (error) {
     console.error("Error fetching sales by salesperson:", error)
     return NextResponse.json(

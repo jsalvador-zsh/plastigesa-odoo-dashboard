@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { 
   Card, 
@@ -11,7 +10,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
-
 interface SalesmanData {
   name: string
   sales: number
@@ -19,19 +17,15 @@ interface SalesmanData {
   customers: number
   avgTicket: number
 }
-
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1']
-
 export default function SalesDistributionChart() {
   const [data, setData] = useState<SalesmanData[]>([])
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch("/api/reports/sales-team-stats")
         const json = await res.json()
-        
         if (json.success) {
           setData(json.data.salesmenRanking)
         }
@@ -41,10 +35,8 @@ export default function SalesDistributionChart() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [])
-
   if (loading) {
     return (
       <Card>
@@ -58,17 +50,14 @@ export default function SalesDistributionChart() {
       </Card>
     )
   }
-
   // Calcular el total para porcentajes
   const totalSales = data.reduce((sum, item) => sum + item.sales, 0)
-  
   // Preparar datos con porcentajes
   const chartData = data.map((item, index) => ({
     ...item,
     percentage: ((item.sales / totalSales) * 100).toFixed(1),
     color: COLORS[index % COLORS.length]
   }))
-
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
@@ -89,7 +78,6 @@ export default function SalesDistributionChart() {
     }
     return null
   }
-
   const CustomLegend = ({ payload }: any) => {
     return (
       <div className="flex flex-wrap justify-center gap-4 mt-4">
@@ -107,7 +95,6 @@ export default function SalesDistributionChart() {
       </div>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -138,7 +125,6 @@ export default function SalesDistributionChart() {
             <Legend content={<CustomLegend />} />
           </PieChart>
         </ResponsiveContainer>
-        
         {/* Resumen numérico */}
         <div className="mt-4 pt-4 border-t">
           <div className="grid grid-cols-2 gap-4 text-center">

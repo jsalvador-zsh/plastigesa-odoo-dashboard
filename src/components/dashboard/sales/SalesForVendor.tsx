@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -12,19 +11,16 @@ import {
 } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { ChartContainer } from "@/components/ui/chart"
-
 interface RawEntry {
   period: string
   salesperson_id: number
   salesperson_name: string
   total: number
 }
-
 interface ChartEntry {
   period: string
   [key: string]: number | string // Para vendedores dinámicos
 }
-
 // Colores predefinidos para las líneas
 const CHART_COLORS = [
   "#3b82f6", // blue-500
@@ -38,39 +34,31 @@ const CHART_COLORS = [
   "#ec4899", // pink-500
   "#6366f1", // indigo-500
 ]
-
 export default function SalesBySalespersonChart() {
   const [range, setRange] = useState("month")
   const [data, setData] = useState<ChartEntry[]>([])
   const [salespeople, setSalespeople] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-
   const rangeOptions = [
     { value: "month", label: "Mens." },
     { value: "quarter", label: "Trim." },
     { value: "year", label: "Anual" },
   ]
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
         const res = await fetch(`/api/reports/sales-by-salesperson?range=${range}`)
         const json = await res.json()
-        
         if (json.success) {
           const raw: RawEntry[] = json.data
-
           // Obtener vendedores únicos
           const uniqueSalespeople = [...new Set(raw.map(entry => entry.salesperson_name))]
             .filter(name => name && name !== 'Sin Asignar')
             .sort()
-          
           setSalespeople(uniqueSalespeople)
-
           // Agrupar datos por periodo
           const grouped: Record<string, ChartEntry> = {}
-          
           raw.forEach(entry => {
             if (!grouped[entry.period]) {
               grouped[entry.period] = { period: entry.period }
@@ -79,20 +67,15 @@ export default function SalesBySalespersonChart() {
                 grouped[entry.period][salesperson] = 0
               })
             }
-            
             if (entry.salesperson_name && entry.salesperson_name !== 'Sin Asignar') {
               grouped[entry.period][entry.salesperson_name] = entry.total
             }
           })
-
           // Convertir a array ordenado por periodo
           const sorted = Object.values(grouped).sort((a, b) =>
             (a.period as string).localeCompare(b.period as string)
           )
-
           setData(sorted)
-          console.log("Chart data:", sorted)
-          console.log("Salespeople:", uniqueSalespeople)
         }
       } catch (error) {
         console.error("Error fetching chart data:", error)
@@ -100,10 +83,8 @@ export default function SalesBySalespersonChart() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [range])
-
   // Función para formatear valores en el tooltip
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-PE', {
@@ -113,7 +94,6 @@ export default function SalesBySalespersonChart() {
       maximumFractionDigits: 0,
     }).format(value)
   }
-
   // Tooltip personalizado
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -149,7 +129,6 @@ export default function SalesBySalespersonChart() {
     }
     return null
   }
-
   if (loading) {
     return (
       <Card className="@container/card">
@@ -165,7 +144,6 @@ export default function SalesBySalespersonChart() {
       </Card>
     )
   }
-
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -187,7 +165,6 @@ export default function SalesBySalespersonChart() {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-
           <Select value={range} onValueChange={setRange}>
             <SelectTrigger className="w-[160px] @[767px]/card:hidden">
               <SelectValue placeholder="Seleccionar período" />
@@ -202,7 +179,6 @@ export default function SalesBySalespersonChart() {
           </Select>
         </div>
       </CardHeader>
-
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={{}}>
           <ResponsiveContainer width="100%" height={400}>
@@ -235,7 +211,6 @@ export default function SalesBySalespersonChart() {
                 wrapperStyle={{ paddingTop: '20px' }}
                 iconType="line"
               />
-              
               {salespeople.map((salesperson, index) => (
                 <Line
                   key={salesperson}
@@ -251,7 +226,6 @@ export default function SalesBySalespersonChart() {
             </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
-        
         {salespeople.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
             No hay datos de vendedores para mostrar

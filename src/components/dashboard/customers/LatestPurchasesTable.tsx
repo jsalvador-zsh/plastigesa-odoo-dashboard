@@ -1,5 +1,4 @@
 "use client"
-
 import {
   Table,
   TableBody,
@@ -40,19 +39,16 @@ import {
 } from "lucide-react"
 import { exportToExcel } from "@/utils/exportUtils"
 import type { Journal } from "@/types/invoice"
-
 // Imports de tipos y hooks
 import type { TimeRange } from "@/types/purchases"
 import { useLatestPurchases } from "@/hooks/useLatestPurchases"
 import { formatCurrency, RANGE_OPTIONS, getCurrentPeriodDescription } from "@/utils/chartUtils"
-
 const LIMIT_OPTIONS = [
   { value: "5", label: "Últ. 5" },
   { value: "10", label: "Últ. 10" },
   { value: "20", label: "Últ. 20" },
   { value: "50", label: "Últ. 50" }
 ]
-
 export default function LatestPurchasesTable() {
   const [limit, setLimit] = useState(10)
   const [range, setRange] = useState<TimeRange>("month")
@@ -60,7 +56,6 @@ export default function LatestPurchasesTable() {
   const [journalId, setJournalId] = useState<number | undefined>(undefined)
   const [journals, setJournals] = useState<Journal[]>([])
   const [isExporting, setIsExporting] = useState(false)
-
   // Cargar diarios
   useEffect(() => {
     fetch('/api/reports/journals')
@@ -72,7 +67,6 @@ export default function LatestPurchasesTable() {
       })
       .catch(err => console.error("Error loading journals:", err))
   }, [])
-
   const { data, loading, error, refetch } = useLatestPurchases({
     limit,
     range,
@@ -88,10 +82,8 @@ export default function LatestPurchasesTable() {
       })
       if (mode === 'period') params.append('range', range);
       if (journalId) params.append('journal_id', journalId.toString());
-
       const res = await fetch(`/api/reports/latest-purchases?${params}`)
       const json = await res.json()
-
       if (json.success) {
         const exportData = json.data.map((purchase: any) => ({
           'Cliente': purchase.customer_name,
@@ -108,7 +100,6 @@ export default function LatestPurchasesTable() {
       setIsExporting(false)
     }
   }
-
   // Loading state
   if (loading) {
     return (
@@ -142,7 +133,6 @@ export default function LatestPurchasesTable() {
       </div>
     )
   }
-
   // Error state
   if (error) {
     return (
@@ -173,7 +163,6 @@ export default function LatestPurchasesTable() {
       </div>
     )
   }
-
   return (
     <div className="space-y-4">
       <Card className="@container/card">
@@ -192,7 +181,6 @@ export default function LatestPurchasesTable() {
                 )}
               </CardDescription>
             </div>
-
             <div className="flex flex-col gap-2 @md/main:items-end">
               <div className="flex gap-2">
                 {mode === 'period' && (
@@ -209,7 +197,6 @@ export default function LatestPurchasesTable() {
                     </SelectContent>
                   </Select>
                 )}
-
                 <Select
                   value={limit.toString()}
                   onValueChange={(value) => setLimit(parseInt(value, 10))}
@@ -225,7 +212,6 @@ export default function LatestPurchasesTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={journalId?.toString() || 'all'} onValueChange={(v) => setJournalId(v === 'all' ? undefined : parseInt(v, 10))}>
                   <SelectTrigger className="w-[160px]">
                     <SelectValue placeholder="Serie/Diario" />
@@ -239,7 +225,6 @@ export default function LatestPurchasesTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Button
                   onClick={refetch}
                   variant="outline"
@@ -248,7 +233,6 @@ export default function LatestPurchasesTable() {
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
-
                 <Button
                   onClick={handleExport}
                   variant="outline"
@@ -264,7 +248,6 @@ export default function LatestPurchasesTable() {
                   Exportar
                 </Button>
               </div>
-
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="w-fit">
                   {data.length} registros
@@ -273,7 +256,6 @@ export default function LatestPurchasesTable() {
             </div>
           </div>
         </CardHeader>
-
         <CardContent>
           <div className="rounded-lg border">
             <Table>

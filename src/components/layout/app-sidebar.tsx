@@ -1,5 +1,4 @@
 "use client"
-
 import * as React from "react"
 import {
   Package,
@@ -13,7 +12,6 @@ import {
   BarChart2,
   Receipt
 } from "lucide-react"
-
 import { NavMain } from "@/components/layout/nav-main"
 import { NavQuickAccess } from "@/components/layout/nav-quick-access"
 import { NavUser } from "@/components/layout/nav-user"
@@ -26,7 +24,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-
 const salesData = {
   user: {
     name: "admin_ventas",
@@ -120,7 +117,6 @@ const salesData = {
     },
   ],
 }
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>

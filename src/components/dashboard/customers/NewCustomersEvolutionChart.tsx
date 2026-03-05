@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import {
   Card,
@@ -30,24 +29,20 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CHART_COLORS } from "@/utils/chartUtils"
 import type { Journal } from "@/types/invoice"
-
 export default function NewCustomersEvolutionChart() {
   const [data, setData] = useState<{ month: string, count: number }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [journalId, setJournalId] = useState<number | undefined>(undefined)
   const [journals, setJournals] = useState<Journal[]>([])
-
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
       let url = `/api/reports/new-customers-evolution`
       if (journalId) url += `?journal_id=${journalId}`
-
       const res = await fetch(url)
       const json = await res.json()
-
       if (json.success) {
         setData(json.data)
       } else {
@@ -59,11 +54,9 @@ export default function NewCustomersEvolutionChart() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchData()
   }, [journalId])
-
   useEffect(() => {
     fetch('/api/reports/journals')
       .then(res => res.json())
@@ -71,7 +64,6 @@ export default function NewCustomersEvolutionChart() {
         if (json.success) setJournals(json.data)
       })
   }, [])
-
   if (loading && data.length === 0) {
     return (
       <Card className="w-full h-[400px] flex items-center justify-center">
@@ -79,7 +71,6 @@ export default function NewCustomersEvolutionChart() {
       </Card>
     )
   }
-
   return (
     <Card className="@container/card">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">

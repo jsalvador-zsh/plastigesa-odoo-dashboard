@@ -1,6 +1,5 @@
 // src/components/sales/SalesStatsCards.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -29,15 +28,12 @@ import {
   Percent,
   DollarSign
 } from "lucide-react"
-
 import type { TimeRange } from "@/types/sales"
 import { useSalesStats } from "@/hooks/useSales"
 import { formatCurrency, RANGE_OPTIONS } from "@/utils/chartUtils"
-
 export default function SalesStatsCards() {
   const [range, setRange] = useState<TimeRange>("month")
   const { stats, loading, error, refetch } = useSalesStats({ range })
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -62,7 +58,6 @@ export default function SalesStatsCards() {
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="space-y-4">
@@ -85,9 +80,7 @@ export default function SalesStatsCards() {
       </div>
     )
   }
-
   if (!stats) return null
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -98,7 +91,6 @@ export default function SalesStatsCards() {
             Resumen de cotizaciones y ventas para {stats.period}
           </p>
         </div>
-        
         <div className="flex items-center gap-4">
           <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
             <SelectTrigger className="w-40">
@@ -112,13 +104,11 @@ export default function SalesStatsCards() {
               ))}
             </SelectContent>
           </Select>
-          
           <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-5">
         {/* Cotizaciones */}
@@ -139,7 +129,6 @@ export default function SalesStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Ventas Confirmadas */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -158,7 +147,6 @@ export default function SalesStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Tasa de Conversión */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -190,7 +178,6 @@ export default function SalesStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Total Facturado */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -211,7 +198,6 @@ export default function SalesStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Pipeline Total */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent
@@ -18,7 +17,6 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
-
 interface ConversionData {
   period: string
   quotes_count: number
@@ -28,32 +26,27 @@ interface ConversionData {
   conversion_rate_count: number
   conversion_rate_value: number
 }
-
 export default function ConversionRateTable() {
   const [range, setRange] = useState("month")
   const [data, setData] = useState<ConversionData[]>([])
   const [loading, setLoading] = useState(true)
-
   const rangeOptions = [
     { value: "month", label: "Mes" },
     { value: "quarter", label: "Trim." },
     { value: "year", label: "Año" },
   ]
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
         const res = await fetch(`/api/reports/conversion-rate?range=${range}`)
         const json = await res.json()
-
         if (json.success) {
           // Ordenar por período descendente para mostrar los más recientes primero
           const sortedData = json.data.sort((a: ConversionData, b: ConversionData) =>
             b.period.localeCompare(a.period)
           )
           setData(sortedData)
-          console.log("Conversion rate data:", sortedData)
         }
       } catch (error) {
         console.error("Error fetching conversion data:", error)
@@ -61,10 +54,8 @@ export default function ConversionRateTable() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [range])
-
   // Función para formatear valores en moneda
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-PE', {
@@ -74,33 +65,27 @@ export default function ConversionRateTable() {
       maximumFractionDigits: 0,
     }).format(value)
   }
-
   // Función para obtener el color del badge según la tasa de conversión
   const getConversionBadge = (rate: number, type: 'count' | 'value') => {
     let variant: "default" | "secondary" | "destructive" = "default"
     let icon = <Minus className="h-3 w-3" />
-
     if (rate >= 70) {
       variant = "default"
       icon = <TrendingUp className="h-3 w-3" />
     } else if (rate >= 50) {
       variant = "secondary"
-
       icon = <Minus className="h-3 w-3" />
     } else {
       variant = "destructive"
       icon = <TrendingDown className="h-3 w-3" />
     }
-
     return (
       <Badge variant={variant} className={`flex items-center gap-1`}>
         {icon}
         {rate.toFixed(1)}%
       </Badge>
-
     )
   }
-
   // Calcular estadísticas generales
   const stats = data.length > 0 ? {
     avgConversionCount: data.reduce((sum, d) => sum + d.conversion_rate_count, 0) / data.length,
@@ -110,7 +95,6 @@ export default function ConversionRateTable() {
     totalQuotesValue: data.reduce((sum, d) => sum + d.quotes_total, 0),
     totalInvoicesValue: data.reduce((sum, d) => sum + d.invoices_total, 0),
   } : null
-
   if (loading) {
     return (
       <Card className="@container/card">
@@ -126,7 +110,6 @@ export default function ConversionRateTable() {
       </Card>
     )
   }
-
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -134,7 +117,6 @@ export default function ConversionRateTable() {
         <CardDescription>
           Porcentaje de cotizaciones que se convierten en facturas
         </CardDescription>
-
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-4 bg-muted/50 rounded-lg">
             <div className="text-center">
@@ -155,7 +137,6 @@ export default function ConversionRateTable() {
             </div>
           </div>
         )}
-
         <div className="mt-4 flex flex-wrap gap-4">
           <ToggleGroup
             type="single"
@@ -170,7 +151,6 @@ export default function ConversionRateTable() {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-
           <Select value={range} onValueChange={setRange}>
             <SelectTrigger className="w-[160px] @[767px]/card:hidden">
               <SelectValue />
@@ -185,7 +165,6 @@ export default function ConversionRateTable() {
           </Select>
         </div>
       </CardHeader>
-
       <CardContent>
         <div className="rounded-md border">
           <Table>
@@ -227,13 +206,11 @@ export default function ConversionRateTable() {
             </TableBody>
           </Table>
         </div>
-
         {data.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
             No hay datos para mostrar en el período seleccionado
           </div>
         )}
-
         <div className="mt-4 text-xs text-muted-foreground">
           <p><strong>Nota:</strong> La tasa de conversión se calcula comparando las cotizaciones y facturas del mismo período.</p>
           <div className="flex flex-wrap gap-4 mt-2">

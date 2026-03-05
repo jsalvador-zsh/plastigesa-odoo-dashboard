@@ -8,7 +8,6 @@ import SalesOrdersTable from "@/components/dashboard/sales/SalesOrdersTable"
 import SalesEvolutionChart from "@/components/dashboard/sales/SalesEvolutionChart"
 import TicketEvolutionChart from "@/components/dashboard/sales/TicketEvolutionChart"
 import ConversionFunnelChart from "@/components/dashboard/sales/ConversionFunnelChart"
-
 export default function DashboardPage() {
   return (
     <SidebarProvider>

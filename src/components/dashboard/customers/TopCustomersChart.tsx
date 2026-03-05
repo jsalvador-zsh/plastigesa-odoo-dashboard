@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import {
     Card,
@@ -43,7 +42,6 @@ import {
 } from "@/components/ui/toggle-group"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-
 // Imports de tipos y hooks personalizados
 import type { TimeRange, TopLimit } from "@/types/dashboard"
 import { useCustomers } from "@/hooks/useCustomers"
@@ -57,14 +55,12 @@ import {
     getCurrentPeriodDescription
 } from "@/utils/chartUtils"
 import type { Journal } from "@/types/invoice"
-
 export default function TopCustomersChart() {
     const [range, setRange] = useState<TimeRange>("month")
     const [limit, setLimit] = useState<TopLimit>("10")
     const [page, setPage] = useState(1)
     const [journalId, setJournalId] = useState<number | undefined>(undefined)
     const [journals, setJournals] = useState<Journal[]>([])
-
     useEffect(() => {
         fetch('/api/reports/journals')
             .then(res => res.json())
@@ -75,36 +71,30 @@ export default function TopCustomersChart() {
             })
             .catch(err => console.error("Error loading journals:", err))
     }, [])
-
     const { data, loading, error, totalPages, refetch } = useCustomers({
         range,
         limit,
         page,
         journalId
     })
-
     const handleLimitChange = (value: string) => {
         setLimit(value as TopLimit)
         setPage(1)
     }
-
     const handleRangeChange = (value: string | TimeRange) => {
         setRange(value as TimeRange)
         setPage(1)
     }
-
     const handleJournalChange = (value: string) => {
         setJournalId(value === 'all' ? undefined : parseInt(value, 10))
         setPage(1)
     }
-
     const chartConfig: ChartConfig = {
         total_purchased: {
             color: CHART_COLORS.accent,
             label: "Total comprado por cliente",
         },
     }
-
     // Loading state
     if (loading) {
         return (
@@ -119,7 +109,6 @@ export default function TopCustomersChart() {
             </Card>
         )
     }
-
     // Error state
     if (error) {
         return (
@@ -147,10 +136,8 @@ export default function TopCustomersChart() {
             </Card>
         )
     }
-
     // Validar datos del gráfico
     const isValidData = validateChartData(data)
-
     return (
         <div className="space-y-4">
             <Card className="@container/card">
@@ -179,7 +166,6 @@ export default function TopCustomersChart() {
                                     </ToggleGroupItem>
                                 ))}
                             </ToggleGroup>
-
                             <Select value={range} onValueChange={handleRangeChange}>
                                 <SelectTrigger
                                     className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
@@ -196,7 +182,6 @@ export default function TopCustomersChart() {
                                     ))}
                                 </SelectContent>
                             </Select>
-
                             <Select value={limit} onValueChange={handleLimitChange}>
                                 <SelectTrigger className="w-[140px]">
                                     <SelectValue placeholder="Top" />
@@ -209,7 +194,6 @@ export default function TopCustomersChart() {
                                     ))}
                                 </SelectContent>
                             </Select>
-
                             <Select value={journalId?.toString() || 'all'} onValueChange={handleJournalChange}>
                                 <SelectTrigger className="w-[160px]">
                                     <SelectValue placeholder="Serie/Diario" />
@@ -223,7 +207,6 @@ export default function TopCustomersChart() {
                                     ))}
                                 </SelectContent>
                             </Select>
-
                             <Button
                                 onClick={refetch}
                                 variant="outline"
@@ -236,7 +219,6 @@ export default function TopCustomersChart() {
                         </div>
                     </CardAction>
                 </CardHeader>
-
                 <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
                     {isValidData ? (
                         <ChartContainer
@@ -267,7 +249,6 @@ export default function TopCustomersChart() {
                                                 const formattedValue = formatCurrency(value, "S/")
                                                 const invoiceCount = customer?.invoice_count || 0
                                                 const refundCount = customer?.refund_count || 0
-
                                                 return [
                                                     formattedValue,
                                                     <div key="details" className="text-xs text-muted-foreground mt-1">
@@ -304,7 +285,6 @@ export default function TopCustomersChart() {
                             </div>
                         </div>
                     )}
-
                     {totalPages > 1 && (
                         <Pagination className="mt-4 justify-end">
                             <PaginationContent>

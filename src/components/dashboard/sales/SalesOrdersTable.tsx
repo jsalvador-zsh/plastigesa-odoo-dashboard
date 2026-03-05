@@ -1,6 +1,5 @@
 // src/components/sales/SalesOrdersTable.tsx
 "use client"
-
 import {
   Table,
   TableBody,
@@ -53,19 +52,16 @@ import { useState, useMemo, useEffect } from "react"
 import { Download, FileDown } from "lucide-react"
 import { exportToExcel } from "@/utils/exportUtils"
 import type { Journal } from "@/types/invoice"
-
 // Imports de tipos y hooks
 import type { TimeRange, SaleOrderState } from "@/types/sales"
 import { useSaleOrders } from "@/hooks/useSales"
 import { formatCurrency, RANGE_OPTIONS } from "@/utils/chartUtils"
-
 const LIMIT_OPTIONS = [
   { value: "10", label: "10 filas" },
   { value: "20", label: "20 filas" },
   { value: "50", label: "50 filas" },
   { value: "100", label: "100 filas" }
 ]
-
 const STATE_OPTIONS = [
   { value: "all", label: "Todos los estados" },
   { value: "draft", label: "Borrador" },
@@ -74,14 +70,12 @@ const STATE_OPTIONS = [
   { value: "done", label: "Finalizada" },
   { value: "cancel", label: "Cancelada" }
 ]
-
 const SALESWOMEN = [
   { id: 11, name: "ROXANA HUANCOLLO" },
   { id: 12, name: "KATHERINE ALPACA" },
   { id: 13, name: "APIMA POLTRADE" },
   { id: 37, name: "ATENCION TIENDA" }
 ]
-
 export default function SalesOrdersTable() {
   const [range, setRange] = useState<TimeRange>("month")
   const [state, setState] = useState<SaleOrderState | 'all'>("all")
@@ -92,7 +86,6 @@ export default function SalesOrdersTable() {
   const [salespersonId, setSalespersonId] = useState<number | undefined>(undefined)
   const [journals, setJournals] = useState<Journal[]>([])
   const [isExporting, setIsExporting] = useState(false)
-
   useEffect(() => {
     fetch('/api/reports/journals')
       .then(res => res.json())
@@ -103,7 +96,6 @@ export default function SalesOrdersTable() {
       })
       .catch(err => console.error("Error loading journals:", err))
   }, [])
-
   const { data, loading, error, totalPages, refetch } = useSaleOrders({
     range,
     state,
@@ -112,7 +104,6 @@ export default function SalesOrdersTable() {
     journalId,
     salespersonId
   })
-
   // Memoizar datos filtrados
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
@@ -122,32 +113,26 @@ export default function SalesOrdersTable() {
       (order.user_name && order.user_name.toLowerCase().includes(searchTerm.toLowerCase()))
     )
   }, [data, searchTerm])
-
   const handleLimitChange = (value: string) => {
     setLimit(parseInt(value, 10))
     setPage(1)
   }
-
   const handleRangeChange = (value: string) => {
     setRange(value as TimeRange)
     setPage(1)
   }
-
   const handleStateChange = (value: string) => {
     setState(value as SaleOrderState | 'all')
     setPage(1)
   }
-
   const handleJournalChange = (value: string) => {
     setJournalId(value === 'all' ? undefined : parseInt(value, 10))
     setPage(1)
   }
-
   const handleSalespersonChange = (value: string) => {
     setSalespersonId(value === 'all' ? undefined : parseInt(value, 10))
     setPage(1)
   }
-
   const handleExport = async () => {
     try {
       setIsExporting(true)
@@ -159,10 +144,8 @@ export default function SalesOrdersTable() {
       })
       if (journalId) params.append("journal_id", journalId.toString());
       if (salespersonId) params.append("salesperson_id", salespersonId.toString());
-
       const res = await fetch(`/api/reports/sale-orders?${params}`)
       const json = await res.json()
-
       if (json.success) {
         const exportData = json.data.map((order: any) => ({
           'Número': order.name,
@@ -180,7 +163,6 @@ export default function SalesOrdersTable() {
       setIsExporting(false)
     }
   }
-
   // Función para obtener badge del estado
   const getStateBadge = (orderState: SaleOrderState) => {
     const stateConfig = {
@@ -190,10 +172,8 @@ export default function SalesOrdersTable() {
       done: { label: "Finalizada", variant: "default" as const, icon: CheckCircle },
       cancel: { label: "Cancelada", variant: "destructive" as const, icon: XCircle }
     }
-
     const config = stateConfig[orderState]
     const Icon = config.icon
-
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
@@ -201,7 +181,6 @@ export default function SalesOrdersTable() {
       </Badge>
     )
   }
-
   // Función para obtener descripción del período
   const getPeriodDescription = (range: TimeRange) => {
     const now = new Date()
@@ -211,7 +190,6 @@ export default function SalesOrdersTable() {
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
-
     switch (range) {
       case "month":
         return `${monthNames[currentMonth - 1]} ${currentYear}`
@@ -224,7 +202,6 @@ export default function SalesOrdersTable() {
         return `${monthNames[currentMonth - 1]} ${currentYear}`
     }
   }
-
   // Loading state
   if (loading) {
     return (
@@ -258,7 +235,6 @@ export default function SalesOrdersTable() {
       </div>
     )
   }
-
   // Error state
   if (error) {
     return (
@@ -285,7 +261,6 @@ export default function SalesOrdersTable() {
       </div>
     )
   }
-
   return (
     <div className="space-y-4">
       <Card className="@container/card">
@@ -301,7 +276,6 @@ export default function SalesOrdersTable() {
                 {state !== 'all' && ` - ${STATE_OPTIONS.find(s => s.value === state)?.label}`}
               </CardDescription>
             </div>
-
             <div className="flex flex-col gap-2 @md/main:items-end">
               <div className="flex gap-2 flex-wrap">
                 <Select value={range} onValueChange={handleRangeChange}>
@@ -316,7 +290,6 @@ export default function SalesOrdersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={state} onValueChange={handleStateChange}>
                   <SelectTrigger className="w-[160px]">
                     <SelectValue placeholder="Estado" />
@@ -329,7 +302,6 @@ export default function SalesOrdersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={limit.toString()} onValueChange={handleLimitChange}>
                   <SelectTrigger className="w-[120px]">
                     <SelectValue placeholder="Mostrar" />
@@ -342,7 +314,6 @@ export default function SalesOrdersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={journalId?.toString() || 'all'} onValueChange={handleJournalChange}>
                   <SelectTrigger className="w-[160px]">
                     <SelectValue placeholder="Serie/Diario" />
@@ -356,7 +327,6 @@ export default function SalesOrdersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={salespersonId?.toString() || 'all'} onValueChange={handleSalespersonChange}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Vendedor/a" />
@@ -370,7 +340,6 @@ export default function SalesOrdersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Button
                   onClick={refetch}
                   variant="outline"
@@ -379,7 +348,6 @@ export default function SalesOrdersTable() {
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
-
                 <Button
                   onClick={handleExport}
                   variant="outline"
@@ -395,7 +363,6 @@ export default function SalesOrdersTable() {
                   Exportar
                 </Button>
               </div>
-
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="w-fit">
                   {data.length} registros
@@ -409,7 +376,6 @@ export default function SalesOrdersTable() {
             </div>
           </div>
         </CardHeader>
-
         <CardContent className="space-y-4">
           {/* Barra de búsqueda */}
           <div className="relative">
@@ -421,7 +387,6 @@ export default function SalesOrdersTable() {
               className="pl-9"
             />
           </div>
-
           {/* Tabla */}
           <div className="rounded-lg border">
             <Table>
@@ -512,7 +477,6 @@ export default function SalesOrdersTable() {
               </TableBody>
             </Table>
           </div>
-
           {/* Paginación */}
           {totalPages > 1 && !searchTerm && (
             <div className="flex items-center justify-between">
@@ -574,7 +538,6 @@ export default function SalesOrdersTable() {
               </Pagination>
             </div>
           )}
-
           {/* Mensaje de filtro activo */}
           {searchTerm && (
             <div className="text-center text-sm text-muted-foreground border-t pt-3">

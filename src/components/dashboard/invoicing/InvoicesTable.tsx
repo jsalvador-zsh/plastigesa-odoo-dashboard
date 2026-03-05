@@ -1,6 +1,5 @@
 // src/components/dashboard/invoicing/InvoicesTable.tsx
 "use client"
-
 import { useState, useMemo } from "react"
 import {
   Table,
@@ -49,17 +48,14 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-
 import type { TimeRange, InvoiceType, InvoiceState } from "@/types/invoice"
 import { useInvoices } from "@/hooks/useInvoices"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const LIMIT_OPTIONS = [
   { value: "20", label: "20 filas" },
   { value: "50", label: "50 filas" },
   { value: "100", label: "100 filas" }
 ]
-
 const TIME_RANGE_OPTIONS = [
   { value: "week", label: "Última semana" },
   { value: "month", label: "Este mes" },
@@ -67,20 +63,17 @@ const TIME_RANGE_OPTIONS = [
   { value: "year", label: "Año" },
   { value: "all", label: "Todo" }
 ]
-
 const INVOICE_TYPE_OPTIONS = [
   { value: "all", label: "Todos los tipos" },
   { value: "out_invoice", label: "Facturas" },
   { value: "out_refund", label: "Notas de Crédito" }
 ]
-
 const STATE_OPTIONS = [
   { value: "all", label: "Todos los estados" },
   { value: "draft", label: "Borrador" },
   { value: "posted", label: "Publicado" },
   { value: "cancel", label: "Cancelado" }
 ]
-
 export default function InvoicesTable() {
   const [range, setRange] = useState<TimeRange>("month")
   const [page, setPage] = useState(1)
@@ -88,7 +81,6 @@ export default function InvoicesTable() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState<string>("all")
   const [filterState, setFilterState] = useState<string>("all")
-
   const { data, loading, error, totalPages, total, refetch } = useInvoices({
     range,
     page,
@@ -96,7 +88,6 @@ export default function InvoicesTable() {
     type: filterType !== 'all' ? filterType as InvoiceType : undefined,
     state: filterState !== 'all' ? filterState as InvoiceState : undefined
   })
-
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
     return data.filter(invoice => 
@@ -104,7 +95,6 @@ export default function InvoicesTable() {
       invoice.partner_name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [data, searchTerm])
-
   const getTypeLabel = (typeCode?: string, type?: InvoiceType): string => {
     if (typeCode) {
       const codeLabels: Record<string, string> = {
@@ -115,7 +105,6 @@ export default function InvoicesTable() {
       }
       return codeLabels[typeCode] || typeCode
     }
-    
     const labels: Record<InvoiceType, string> = {
       out_invoice: 'Factura',
       out_refund: 'NC',
@@ -125,30 +114,24 @@ export default function InvoicesTable() {
     }
     return labels[type!] || type || ''
   }
-
   const getPaymentBadge = (paymentState?: string) => {
     if (!paymentState) return null
-    
     const variants = {
       paid: "default",
       not_paid: "destructive",
       partial: "outline",
       in_payment: "secondary"
     } as const
-    
     const labels = {
       paid: "Pagado",
       not_paid: "No pagado",
       partial: "Parcial",
       in_payment: "En proceso"
     }
-    
     const variant = variants[paymentState as keyof typeof variants] || "outline"
     const label = labels[paymentState as keyof typeof labels] || paymentState
-    
     return <Badge variant={variant} className="text-xs">{label}</Badge>
   }
-
   const getStateIcon = (state: InvoiceState) => {
     switch (state) {
       case "posted": return <CheckCircle className="h-4 w-4" />
@@ -156,7 +139,6 @@ export default function InvoicesTable() {
       default: return <Clock className="h-4 w-4" />
     }
   }
-
   const getStateBadge = (state: InvoiceState, estadoElectronico?: string) => {
     // Si está anulado electrónicamente, mostrar como anulado
     if (estadoElectronico === '2_ANULADO') {
@@ -169,7 +151,6 @@ export default function InvoicesTable() {
         </Badge>
       )
     }
-    
     const variants = {
       draft: "outline",
       posted: "default",
@@ -189,7 +170,6 @@ export default function InvoicesTable() {
       </Badge>
     )
   }
-
   if (loading && !data.length) {
     return (
       <Card>
@@ -210,7 +190,6 @@ export default function InvoicesTable() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -230,7 +209,6 @@ export default function InvoicesTable() {
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -249,7 +227,6 @@ export default function InvoicesTable() {
           </Button>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-4">
         {/* Filtros */}
         <div className="flex flex-col @2xl/main:flex-row gap-4">
@@ -262,7 +239,6 @@ export default function InvoicesTable() {
               className="pl-10"
             />
           </div>
-
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-full @2xl/main:w-48">
               <SelectValue />
@@ -273,7 +249,6 @@ export default function InvoicesTable() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={filterState} onValueChange={setFilterState}>
             <SelectTrigger className="w-full @2xl/main:w-40">
               <SelectValue />
@@ -284,7 +259,6 @@ export default function InvoicesTable() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={range} onValueChange={(v) => setRange(v as TimeRange)}>
             <SelectTrigger className="w-full @2xl/main:w-40">
               <SelectValue />
@@ -295,7 +269,6 @@ export default function InvoicesTable() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={limit.toString()} onValueChange={(v) => { setLimit(parseInt(v)); setPage(1); }}>
             <SelectTrigger className="w-full @2xl/main:w-32">
               <SelectValue />
@@ -307,7 +280,6 @@ export default function InvoicesTable() {
             </SelectContent>
           </Select>
         </div>
-
         {/* Tabla */}
         <div className="rounded-md border overflow-x-auto">
           <Table>
@@ -373,7 +345,6 @@ export default function InvoicesTable() {
             </TableBody>
           </Table>
         </div>
-
         {/* Paginación */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
@@ -413,4 +384,3 @@ export default function InvoicesTable() {
     </Card>
   )
 }
-

@@ -1,6 +1,5 @@
 // src/components/dashboard/pos/POSTopProductsRanking.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -27,11 +26,9 @@ import {
   Medal,
   Trophy
 } from "lucide-react"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSTopProducts } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -39,22 +36,18 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 const LIMIT_OPTIONS = [
   { value: "5", label: "Top 5" },
   { value: "10", label: "Top 10" },
   { value: "15", label: "Top 15" },
   { value: "20", label: "Top 20" }
 ]
-
 export default function POSTopProductsRanking() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const [limit, setLimit] = useState<number>(10)
   const { data, loading, error, refetch } = usePOSTopProducts(range, limit)
-
   // Calcular el total para porcentajes
   const totalQuantity = data.reduce((sum, item) => sum + item.quantity_sold, 0)
-
   if (loading) {
     return (
       <Card>
@@ -89,7 +82,6 @@ export default function POSTopProductsRanking() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -113,7 +105,6 @@ export default function POSTopProductsRanking() {
       </Card>
     )
   }
-
   // Función para obtener el icono de posición
   const getPositionIcon = (position: number) => {
     if (position === 1) {
@@ -129,14 +120,12 @@ export default function POSTopProductsRanking() {
       </span>
     )
   }
-
   // Función para obtener el color del badge según la posición
   const getBadgeVariant = (position: number) => {
     if (position === 1) return "default"
     if (position <= 3) return "secondary" 
     return "outline"
   }
-
   return (
     <Card>
       <CardHeader>
@@ -150,7 +139,6 @@ export default function POSTopProductsRanking() {
               Clasificación detallada por unidades vendidas
             </CardDescription>
           </div>
-          
           <div className="flex items-center gap-4">
             <Select value={range} onValueChange={(value) => setRange(value as POSTimeRange)}>
               <SelectTrigger className="w-40">
@@ -164,7 +152,6 @@ export default function POSTopProductsRanking() {
                 ))}
               </SelectContent>
             </Select>
-
             <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value, 10))}>
               <SelectTrigger className="w-24">
                 <SelectValue placeholder="Límite" />
@@ -177,14 +164,12 @@ export default function POSTopProductsRanking() {
                 ))}
               </SelectContent>
             </Select>
-            
             <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-
       <CardContent>
         {data.length > 0 ? (
           <>
@@ -192,7 +177,6 @@ export default function POSTopProductsRanking() {
               {data.map((product, index) => {
                 const position = index + 1
                 const percentage = totalQuantity > 0 ? (product.quantity_sold / totalQuantity) * 100 : 0
-                
                 return (
                   <div 
                     key={index} 
@@ -204,7 +188,6 @@ export default function POSTopProductsRanking() {
                     <div className="flex items-center justify-center min-w-[2rem]">
                       {getPositionIcon(position)}
                     </div>
-                    
                     <div className="flex-1 min-w-0">
                       {/* Nombre del producto y badge */}
                       <div className="flex items-center gap-2 mb-2">
@@ -220,7 +203,6 @@ export default function POSTopProductsRanking() {
                           </Badge>
                         )}
                       </div>
-                      
                       {/* Métricas del producto */}
                       <div className="grid grid-cols-3 gap-3 text-xs">
                         <div>
@@ -247,7 +229,6 @@ export default function POSTopProductsRanking() {
                 )
               })}
             </div>
-
             {/* Resumen del ranking */}
             <div className="mt-4 pt-4 border-t">
               <div className="flex items-center justify-between text-sm text-muted-foreground">

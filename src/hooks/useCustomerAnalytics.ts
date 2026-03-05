@@ -1,6 +1,5 @@
 // src/hooks/useCustomerAnalytics.ts
 import { useQuery } from "@tanstack/react-query"
-
 export function useCustomerAnalytics() {
   return useQuery({
     queryKey: ["customer-analytics"],

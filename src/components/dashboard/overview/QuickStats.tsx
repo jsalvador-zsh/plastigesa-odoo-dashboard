@@ -1,18 +1,15 @@
 // src/components/dashboard/overview/QuickStats.tsx
 "use client"
-
 import { Card, CardContent } from "@/components/ui/card"
 import { TrendingUp, Users, ShoppingCart, Receipt } from "lucide-react"
 import { useSalesStats } from "@/hooks/useSales"
 import { usePOSStats } from "@/hooks/usePOS"
 import { useInvoiceStats } from "@/hooks/useInvoices"
 import { formatCurrency } from "@/utils/chartUtils"
-
 export default function QuickStats() {
   const { stats: salesStats } = useSalesStats({ range: 'month' })
   const { data: posStats } = usePOSStats('today')
   const { data: invoiceStats } = useInvoiceStats('month')
-
   const stats = [
     {
       title: "Ventas del Mes",
@@ -47,7 +44,6 @@ export default function QuickStats() {
       bgColor: "bg-orange-50"
     }
   ]
-
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat, index) => (
@@ -71,4 +67,3 @@ export default function QuickStats() {
     </div>
   )
 }
-

@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import {
   Card,
@@ -25,13 +24,11 @@ import type { TimeRange } from "@/types/dashboard"
 import type { CustomerStats } from "@/types/stats"
 import { formatCurrency } from "@/utils/chartUtils"
 import type { Journal } from "@/types/invoice"
-
 const RANGE_OPTIONS = [
   { value: "month", label: "Mes actual" },
   { value: "quarter", label: "Trimestre actual" },
   { value: "year", label: "Año actual" }
 ]
-
 export default function CustomerStatsComponent() {
   const [stats, setStats] = useState<CustomerStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,7 +38,6 @@ export default function CustomerStatsComponent() {
   const [journals, setJournals] = useState<Journal[]>([])
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1)
   const [year, setYear] = useState<number>(new Date().getFullYear())
-
   const months = [
     { value: 1, label: "Enero" },
     { value: 2, label: "Febrero" },
@@ -56,9 +52,7 @@ export default function CustomerStatsComponent() {
     { value: 11, label: "Noviembre" },
     { value: 12, label: "Diciembre" },
   ]
-
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
-
   useEffect(() => {
     fetch('/api/reports/journals')
       .then(res => res.json())
@@ -69,12 +63,10 @@ export default function CustomerStatsComponent() {
       })
       .catch(err => console.error("Error loading journals:", err))
   }, [])
-
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-
       let url = `/api/reports/customer-stats?range=${range}`
       if (journalId) url += `&journal_id=${journalId}`
       if (range === 'month') {
@@ -84,15 +76,11 @@ export default function CustomerStatsComponent() {
       } else if (range === 'year') {
         url += `&year=${year}`
       }
-
       const res = await fetch(url)
-
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json = await res.json()
-
       if (json.success) {
         setStats(json.data)
       } else {
@@ -105,15 +93,12 @@ export default function CustomerStatsComponent() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchData()
   }, [range, journalId, month, year])
-
   const renderBadge = (change: number) => {
     const isPositive = change >= 0
     const Icon = isPositive ? TrendingUpIcon : TrendingDownIcon
-
     return (
       <Badge variant="outline" className={isPositive ? "text-green-600" : "text-red-600"}>
         <Icon className="size-3.5 mr-1" />
@@ -121,7 +106,6 @@ export default function CustomerStatsComponent() {
       </Badge>
     )
   }
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -135,7 +119,6 @@ export default function CustomerStatsComponent() {
           </div>
           <Skeleton className="h-10 w-40" />
         </div>
-
         {/* Cards skeleton */}
         <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -151,7 +134,6 @@ export default function CustomerStatsComponent() {
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="space-y-4">
@@ -168,9 +150,7 @@ export default function CustomerStatsComponent() {
       </div>
     )
   }
-
   if (!stats) return null
-
   return (
     <div className="space-y-4">
       {/* Header con filtros */}
@@ -181,7 +161,6 @@ export default function CustomerStatsComponent() {
             Resumen de métricas para {stats.period}
           </p>
         </div>
-
         <div className="flex items-center gap-4">
           <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
             <SelectTrigger className="w-40">
@@ -195,7 +174,6 @@ export default function CustomerStatsComponent() {
               ))}
             </SelectContent>
           </Select>
-
           {range === 'month' && (
             <Select value={month.toString()} onValueChange={(v) => setMonth(parseInt(v, 10))}>
               <SelectTrigger className="w-32">
@@ -210,7 +188,6 @@ export default function CustomerStatsComponent() {
               </SelectContent>
             </Select>
           )}
-
           <Select value={year.toString()} onValueChange={(v) => setYear(parseInt(v, 10))}>
             <SelectTrigger className="w-24">
               <SelectValue placeholder="Año" />
@@ -223,7 +200,6 @@ export default function CustomerStatsComponent() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={journalId?.toString() || 'all'} onValueChange={(v) => setJournalId(v === 'all' ? undefined : parseInt(v, 10))}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Serie/Diario" />
@@ -237,7 +213,6 @@ export default function CustomerStatsComponent() {
               ))}
             </SelectContent>
           </Select>
-
           <Button
             onClick={fetchData}
             variant="outline"
@@ -248,7 +223,6 @@ export default function CustomerStatsComponent() {
           </Button>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
         {/* Clientes Activos */}
@@ -274,7 +248,6 @@ export default function CustomerStatsComponent() {
             </div>
           </CardFooter>
         </Card>
-
         {/* Cliente Top */}
         <Card className="@container/card">
           <CardHeader>
@@ -293,7 +266,6 @@ export default function CustomerStatsComponent() {
             </div>
           </CardFooter>
         </Card>
-
         {/* Ticket Promedio */}
         <Card className="@container/card">
           <CardHeader>
@@ -312,7 +284,6 @@ export default function CustomerStatsComponent() {
             </div>
           </CardFooter>
         </Card>
-
         {/* Clientes Nuevos */}
         <Card className="@container/card">
           <CardHeader>

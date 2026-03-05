@@ -1,13 +1,10 @@
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-
 import { SiteHeader } from "@/components/layout/site-header"
 import POSTopProductsStats from "@/components/dashboard/products/POSStatsProductsCards"
 import POSTopProductsChart from "@/components/dashboard/products/POSTopProductsChart"
 import POSRankingDetail from "@/components/dashboard/products/POSRankingDetail"
-
 export default async function DashboardPage() {
-
   return (
     <SidebarProvider>
       <AppSidebar />

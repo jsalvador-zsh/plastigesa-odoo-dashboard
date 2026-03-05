@@ -1,6 +1,5 @@
 // src/components/dashboard/invoicing/InvoiceCharts.tsx
 "use client"
-
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -21,28 +20,22 @@ import {
   Pie,
   Legend
 } from "recharts"
-
 import type { TimeRange } from "@/types/invoice"
 import { useInvoicesByType, useInvoicesByJournal } from "@/hooks/useInvoices"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const TIME_RANGE_OPTIONS = [
   { value: "week", label: "Última semana" },
   { value: "month", label: "Este mes" },
   { value: "quarter", label: "Trimestre" },
   { value: "year", label: "Año" }
 ]
-
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4']
-
 export default function InvoiceCharts() {
   const [range, setRange] = useState<TimeRange>("month")
   const { data: byType, loading: loadingType, error: errorType, refetch: refetchType } = useInvoicesByType(range)
   const { data: byJournal, loading: loadingJournal, error: errorJournal, refetch: refetchJournal } = useInvoicesByJournal(range)
-
   const loading = loadingType || loadingJournal
   const error = errorType || errorJournal
-
   if (loading) {
     return (
       <div className="grid grid-cols-1 @5xl/main:grid-cols-2 gap-6">
@@ -65,7 +58,6 @@ export default function InvoiceCharts() {
       </div>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -85,7 +77,6 @@ export default function InvoiceCharts() {
       </Card>
     )
   }
-
   return (
     <div className="grid grid-cols-1 @5xl/main:grid-cols-2 gap-6">
       {/* Facturación por Tipo */}
@@ -165,7 +156,6 @@ export default function InvoiceCharts() {
           )}
         </CardContent>
       </Card>
-
       {/* Facturación por Diario */}
       <Card>
         <CardHeader>
@@ -229,4 +219,3 @@ export default function InvoiceCharts() {
     </div>
   )
 }
-

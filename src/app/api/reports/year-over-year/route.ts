@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import db from "@/lib/db"
-
 interface YearOverYear {
   month: number
   month_name: string
@@ -11,13 +10,11 @@ interface YearOverYear {
   growth_percentage: number
   growth_absolute: number
 }
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const currentYear = parseInt(searchParams.get("year") || new Date().getFullYear().toString())
     const previousYear = currentYear - 1
-    
     const result = await db.query(`
       WITH monthly_sales AS (
         SELECT 
@@ -77,7 +74,6 @@ export async function GET(req: NextRequest) {
       FROM comparison_data
       ORDER BY month ASC;
     `, [currentYear, previousYear])
-
     const data: YearOverYear[] = result.rows.map(row => ({
       month: parseInt(row.month),
       month_name: row.month_name,
@@ -88,24 +84,14 @@ export async function GET(req: NextRequest) {
       growth_percentage: parseFloat(row.growth_percentage) || 0,
       growth_absolute: parseFloat(row.growth_absolute) || 0
     }))
-
     // Debug info
-    console.log(`Year over year comparison ${previousYear} vs ${currentYear}:`)
-    console.log("Total months:", data.length)
-    
     if (data.length > 0) {
       const totalCurrentYear = data.reduce((sum, d) => sum + d.current_year_total, 0)
       const totalPreviousYear = data.reduce((sum, d) => sum + d.previous_year_total, 0)
       const overallGrowth = totalPreviousYear > 0 ? 
         ((totalCurrentYear - totalPreviousYear) / totalPreviousYear) * 100 : 0
-      
-      console.log(`Total ${currentYear}: ${totalCurrentYear.toFixed(2)}`)
-      console.log(`Total ${previousYear}: ${totalPreviousYear.toFixed(2)}`)
-      console.log(`Overall growth: ${overallGrowth.toFixed(2)}%`)
     }
-
     return NextResponse.json({ success: true, data })
-    
   } catch (error) {
     console.error("Error fetching year over year data:", error)
     return NextResponse.json(

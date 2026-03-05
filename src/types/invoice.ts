@@ -1,5 +1,4 @@
 // src/types/invoice.ts
-
 export interface Invoice {
   id: number
   name: string // Número de factura
@@ -23,19 +22,16 @@ export interface Invoice {
   estado_comprobante_electronico?: string // Estado: 1_ACEPTADO, 2_ANULADO, 3_OBSERVADO
   documento_baja_id?: number | null // ID del documento de baja (si fue anulado)
 }
-
 export type InvoiceType = 
   | 'out_invoice'    // Factura de cliente
   | 'out_refund'     // Nota de crédito de cliente
   | 'in_invoice'     // Factura de proveedor
   | 'in_refund'      // Nota de crédito de proveedor
   | 'entry'          // Asiento contable
-
 export type InvoiceState = 
   | 'draft'    // Borrador
   | 'posted'   // Publicado/Contabilizado
   | 'cancel'   // Cancelado
-
 export type PaymentState =
   | 'not_paid'      // No pagado
   | 'in_payment'    // En proceso de pago
@@ -43,7 +39,6 @@ export type PaymentState =
   | 'partial'       // Pago parcial
   | 'reversed'      // Revertido
   | 'invoicing_legacy' // Legado
-
 export interface InvoiceStats {
   totalInvoices: number
   totalAmount: number
@@ -53,7 +48,6 @@ export interface InvoiceStats {
   avgInvoiceAmount: number
   period: string
 }
-
 export interface InvoicesByType {
   type: InvoiceType
   type_label: string
@@ -61,7 +55,6 @@ export interface InvoicesByType {
   total_amount: number
   percentage: number
 }
-
 export interface InvoicesByJournal {
   journal_id: number
   journal_name: string
@@ -70,14 +63,12 @@ export interface InvoicesByJournal {
   total_amount: number
   percentage: number
 }
-
 export interface InvoicesByState {
   state: InvoiceState
   state_label: string
   count: number
   total_amount: number
 }
-
 export interface Journal {
   id: number
   name: string
@@ -85,14 +76,12 @@ export interface Journal {
   type: JournalType
   active: boolean
 }
-
 export type JournalType = 
   | 'sale'      // Ventas
   | 'purchase'  // Compras
   | 'cash'      // Caja
   | 'bank'      // Banco
   | 'general'   // General
-
 export interface InvoiceQueryParams {
   range?: TimeRange
   type?: InvoiceType | 'all'
@@ -101,9 +90,7 @@ export interface InvoiceQueryParams {
   page?: string
   limit?: string
 }
-
 export type TimeRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
-
 export interface InvoiceTrend {
   period: string
   invoices: number
@@ -112,7 +99,6 @@ export interface InvoiceTrend {
   total_invoices_amount: number
   total_refunds_amount: number
 }
-
 export interface PaymentAnalysis {
   total_invoiced: number
   total_paid: number
@@ -120,4 +106,3 @@ export interface PaymentAnalysis {
   payment_rate: number
   avg_payment_days?: number
 }
-

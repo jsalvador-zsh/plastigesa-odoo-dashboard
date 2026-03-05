@@ -1,6 +1,5 @@
 // src/components/dashboard/pos/POSOrdersTable.tsx
 "use client"
-
 import {
   Table,
   TableBody,
@@ -51,19 +50,16 @@ import {
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { useState, useMemo } from "react"
-
 // Imports de tipos y hooks
 import type { POSTimeRange, POSOrderState } from "@/types/pos"
 import { usePOSOrders, usePOSSalespersons } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const LIMIT_OPTIONS = [
   { value: "10", label: "10 filas" },
   { value: "20", label: "20 filas" },
   { value: "50", label: "50 filas" },
   { value: "100", label: "100 filas" }
 ]
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -71,23 +67,19 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 export default function POSOrdersTable() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedSalesperson, setSelectedSalesperson] = useState<string>("all")
-
   const { data, loading, error, totalPages, total, refetch } = usePOSOrders({
     range,
     page,
     limit,
     salesperson: selectedSalesperson
   })
-
   const { data: salespersons } = usePOSSalespersons()
-
   // Memoizar datos filtrados
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
@@ -97,22 +89,18 @@ export default function POSOrdersTable() {
       (order.salesperson && order.salesperson.toLowerCase().includes(searchTerm.toLowerCase()))
     )
   }, [data, searchTerm])
-
   const handleLimitChange = (value: string) => {
     setLimit(parseInt(value, 10))
     setPage(1)
   }
-
   const handleRangeChange = (value: string) => {
     setRange(value as POSTimeRange)
     setPage(1)
   }
-
   const handleSalespersonChange = (value: string) => {
     setSelectedSalesperson(value)
     setPage(1)
   }
-
   // Función para obtener badge del estado
   const getStateBadge = (orderState: POSOrderState) => {
     const stateConfig = {
@@ -122,10 +110,8 @@ export default function POSOrdersTable() {
       invoiced: { label: "Facturada", variant: "default" as const, icon: Receipt },
       cancel: { label: "Cancelada", variant: "destructive" as const, icon: XCircle }
     }
-
     const config = stateConfig[orderState]
     const Icon = config.icon
-
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
@@ -133,7 +119,6 @@ export default function POSOrdersTable() {
       </Badge>
     )
   }
-
   const renderPaginationButton = (pageNum: number, isActive: boolean = false) => (
     <PaginationItem key={pageNum}>
       <Button
@@ -147,7 +132,6 @@ export default function POSOrdersTable() {
       </Button>
     </PaginationItem>
   )
-
   if (loading && data.length === 0) {
     return (
       <Card className="@container/card">
@@ -175,7 +159,6 @@ export default function POSOrdersTable() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card className="@container/card">
@@ -196,7 +179,6 @@ export default function POSOrdersTable() {
       </Card>
     )
   }
-
   return (
     <Card className="@container/card">
       <CardHeader className="space-y-4">
@@ -211,7 +193,6 @@ export default function POSOrdersTable() {
             </CardDescription>
           </div>
         </div>
-
         {/* Controles */}
         <div className="flex flex-col @lg/card:flex-row gap-4 items-start @lg/card:items-center justify-between">
           <div className="flex flex-col @md/card:flex-row gap-2 @md/card:gap-4 w-full @lg/card:w-auto">
@@ -224,7 +205,6 @@ export default function POSOrdersTable() {
                 className="pl-10 w-full @md/card:w-80"
               />
             </div>
-
             <div className="flex gap-2 @md/card:gap-4">
               <Select value={range} onValueChange={handleRangeChange}>
                 <SelectTrigger className="w-[140px]">
@@ -238,7 +218,6 @@ export default function POSOrdersTable() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Select value={selectedSalesperson} onValueChange={handleSalespersonChange}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Vendedor" />
@@ -252,7 +231,6 @@ export default function POSOrdersTable() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Select value={limit.toString()} onValueChange={handleLimitChange}>
                 <SelectTrigger className="w-[120px]">
                   <SelectValue placeholder="Mostrar" />
@@ -265,7 +243,6 @@ export default function POSOrdersTable() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Button
                 onClick={refetch}
                 variant="outline"
@@ -278,7 +255,6 @@ export default function POSOrdersTable() {
           </div>
         </div>
       </CardHeader>
-
       <CardContent>
         {filteredData.length > 0 ? (
           <>
@@ -360,7 +336,6 @@ export default function POSOrdersTable() {
                 </TableBody>
               </Table>
             </div>
-
             {/* Paginación */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between pt-4">
@@ -369,7 +344,6 @@ export default function POSOrdersTable() {
                   <span>•</span>
                   <span>{total} registros totales</span>
                 </div>
-
                 <Pagination>
                   <PaginationContent className="flex items-center space-x-1">
                     <PaginationItem>
@@ -383,7 +357,6 @@ export default function POSOrdersTable() {
                         <ChevronsLeftIcon className="h-4 w-4" />
                       </Button>
                     </PaginationItem>
-
                     <PaginationItem>
                       <Button
                         variant="ghost"
@@ -395,25 +368,20 @@ export default function POSOrdersTable() {
                         <ChevronLeftIcon className="h-4 w-4" />
                       </Button>
                     </PaginationItem>
-
                     {/* Páginas */}
                     {(() => {
                       const pages = []
                       const maxVisiblePages = 5
                       let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2))
                       let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
-
                       if (endPage - startPage + 1 < maxVisiblePages) {
                         startPage = Math.max(1, endPage - maxVisiblePages + 1)
                       }
-
                       for (let i = startPage; i <= endPage; i++) {
                         pages.push(renderPaginationButton(i, i === page))
                       }
-
                       return pages
                     })()}
-
                     <PaginationItem>
                       <Button
                         variant="ghost"
@@ -425,7 +393,6 @@ export default function POSOrdersTable() {
                         <ChevronRightIcon className="h-4 w-4" />
                       </Button>
                     </PaginationItem>
-
                     <PaginationItem>
                       <Button
                         variant="ghost"

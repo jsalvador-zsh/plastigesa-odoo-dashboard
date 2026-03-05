@@ -1,13 +1,8 @@
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-
-
 import { SiteHeader } from "@/components/layout/site-header"
 import InactiveCustomersTable from "@/components/dashboard/customers/InactiveCustomersTable"
-
-
 export default async function DashboardPage() {
-
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -20,7 +15,6 @@ export default async function DashboardPage() {
                 <InactiveCustomersTable />
               </div>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-
               </div>
             </div>
           </div>

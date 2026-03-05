@@ -1,6 +1,5 @@
 // src/components/dashboard/sales/POSVendorRanking.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -30,11 +29,9 @@ import {
   TrendingUp,
   User
 } from "lucide-react"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSSalesByPerson } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -42,7 +39,6 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 const getMedalIcon = (position: number) => {
   switch (position) {
     case 1:
@@ -55,7 +51,6 @@ const getMedalIcon = (position: number) => {
       return <span className="text-lg font-bold text-muted-foreground">{position}</span>
   }
 }
-
 const getMedalColor = (position: number) => {
   switch (position) {
     case 1:
@@ -68,15 +63,12 @@ const getMedalColor = (position: number) => {
       return "bg-background"
   }
 }
-
 export default function POSVendorRanking() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const { data, loading, error, refetch } = usePOSSalesByPerson(range)
-
   // Tomar solo los top 5 vendedores
   const topVendors = data.slice(0, 5)
   const maxAmount = topVendors.length > 0 ? topVendors[0].total_amount : 0
-
   if (loading) {
     return (
       <Card>
@@ -100,7 +92,6 @@ export default function POSVendorRanking() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -124,7 +115,6 @@ export default function POSVendorRanking() {
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -138,7 +128,6 @@ export default function POSVendorRanking() {
               Ranking de mejores vendedores por monto
             </CardDescription>
           </div>
-          
           <div className="flex items-center gap-2">
             <Select value={range} onValueChange={(value) => setRange(value as POSTimeRange)}>
               <SelectTrigger className="w-40">
@@ -152,20 +141,17 @@ export default function POSVendorRanking() {
                 ))}
               </SelectContent>
             </Select>
-            
             <Button onClick={refetch} variant="outline" size="icon" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-4">
         {topVendors.length > 0 ? (
           topVendors.map((vendor, index) => {
             const position = index + 1
             const progressPercentage = maxAmount > 0 ? (vendor.total_amount / maxAmount) * 100 : 0
-
             return (
               <div
                 key={index}
@@ -176,7 +162,6 @@ export default function POSVendorRanking() {
                   <div className="flex items-center justify-center w-10 h-10 shrink-0">
                     {getMedalIcon(position)}
                   </div>
-
                   <div className="flex-1 min-w-0">
                     {/* Nombre y badge */}
                     <div className="flex items-center justify-between mb-2">
@@ -190,7 +175,6 @@ export default function POSVendorRanking() {
                         {vendor.percentage.toFixed(1)}%
                       </Badge>
                     </div>
-
                     {/* Estadísticas en grid */}
                     <div className="grid grid-cols-3 gap-2 mb-3 text-sm">
                       <div>
@@ -212,7 +196,6 @@ export default function POSVendorRanking() {
                         </div>
                       </div>
                     </div>
-
                     {/* Barra de progreso */}
                     <div className="space-y-1">
                       <Progress value={progressPercentage} className="h-2" />
@@ -235,7 +218,6 @@ export default function POSVendorRanking() {
             </p>
           </div>
         )}
-
         {/* Indicador de más vendedores */}
         {data.length > 5 && (
           <div className="pt-4 border-t text-center">
@@ -249,4 +231,3 @@ export default function POSVendorRanking() {
     </Card>
   )
 }
-

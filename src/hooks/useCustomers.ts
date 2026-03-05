@@ -6,14 +6,12 @@ import type {
   TopLimit,
   ApiResponse
 } from "@/types/dashboard"
-
 interface UseCustomersParams {
   range: TimeRange
   limit: TopLimit
   page: number
   journalId?: number
 }
-
 interface UseCustomersReturn {
   data: Customer[]
   loading: boolean
@@ -21,7 +19,6 @@ interface UseCustomersReturn {
   totalPages: number
   refetch: () => void
 }
-
 export function useCustomers({
   range,
   limit,
@@ -32,23 +29,17 @@ export function useCustomers({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(1)
-
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-
       let url = `/api/reports/top-customers?range=${range}&limit=${limit}&page=${page}`
       if (journalId) url += `&journal_id=${journalId}`
-
       const res = await fetch(url)
-
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json: ApiResponse<Customer[]> = await res.json()
-
       if (json.success) {
         setData(json.data)
         setTotalPages(json.meta?.totalPages || 1)
@@ -63,11 +54,9 @@ export function useCustomers({
       setLoading(false)
     }
   }, [range, limit, page, journalId])
-
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
   return {
     data,
     loading,

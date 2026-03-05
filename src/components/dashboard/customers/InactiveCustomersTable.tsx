@@ -1,5 +1,4 @@
 "use client"
-
 import {
   Table,
   TableBody,
@@ -50,31 +49,26 @@ import {
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { useState, useMemo } from "react"
-
 // Imports de tipos y hooks
 import type { InactivityPeriod } from "@/types/inactive"
 import { useInactiveCustomers } from "@/hooks/useInactiveCustomers"
 import { formatCurrency, formatPhone, getWhatsAppLink } from "@/utils/chartUtils"
-
 const LIMIT_OPTIONS = [
   { value: "10", label: "10 filas" },
   { value: "30", label: "30 filas" },
   { value: "50", label: "50 filas" },
   { value: "100", label: "100 filas" }
 ]
-
 const PERIOD_OPTIONS = [
   { value: "3_months", label: "3 meses" },
   { value: "6_months", label: "6 meses" },
   { value: "1_year", label: "1 año" }
 ]
-
 export default function InactiveCustomersTable() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [period, setPeriod] = useState<InactivityPeriod>("3_months")
   const [searchTerm, setSearchTerm] = useState("")
-
   const { 
     data, 
     loading, 
@@ -84,7 +78,6 @@ export default function InactiveCustomersTable() {
     exportToExcel, 
     exporting 
   } = useInactiveCustomers({ page, limit, period })
-
   // Memoizar datos filtrados
   const filteredData = useMemo(() => {
     if (!searchTerm.trim()) return data
@@ -92,23 +85,19 @@ export default function InactiveCustomersTable() {
       customer.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [data, searchTerm])
-
   const handleLimitChange = (value: string) => {
     setLimit(parseInt(value, 10))
     setPage(1)
   }
-
   const handlePeriodChange = (value: string) => {
     setPeriod(value as InactivityPeriod)
     setPage(1)
   }
-
   const formatDaysAgo = (days: number) => {
     if (days < 30) return `${days} días`
     if (days < 365) return `${Math.floor(days / 30)} meses`
     return `${Math.floor(days / 365)} años`
   }
-
   const getPeriodDescription = (period: InactivityPeriod) => {
     const descriptions = {
       "3_months": "3 meses",
@@ -117,7 +106,6 @@ export default function InactiveCustomersTable() {
     }
     return descriptions[period]
   }
-
     // Loading state
   if (loading) {
     return (
@@ -151,7 +139,6 @@ export default function InactiveCustomersTable() {
       </div>
     )
   }
-
   // Error state
   if (error) {
     return (
@@ -182,7 +169,6 @@ export default function InactiveCustomersTable() {
       </div>
     )
   }
-
   return (
     <div className="space-y-4">
       <Card className="@container/card">
@@ -197,7 +183,6 @@ export default function InactiveCustomersTable() {
                 Clientes sin compras en los últimos {getPeriodDescription(period)}
               </CardDescription>
             </div>
-            
             <div className="flex flex-col gap-2 @md/main:items-end">
               <div className="flex gap-2">
                 <Select 
@@ -215,7 +200,6 @@ export default function InactiveCustomersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select 
                   value={limit.toString()} 
                   onValueChange={handleLimitChange}
@@ -231,7 +215,6 @@ export default function InactiveCustomersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Button
                   onClick={exportToExcel}
                   variant="default"
@@ -244,7 +227,6 @@ export default function InactiveCustomersTable() {
                   )}
                   {exporting ? "Exportando..." : "Excel"}
                 </Button>
-
                 <Button
                   onClick={refetch}
                   variant="outline"
@@ -254,7 +236,6 @@ export default function InactiveCustomersTable() {
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
-              
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="w-fit">
                   {data.length} clientes
@@ -268,7 +249,6 @@ export default function InactiveCustomersTable() {
             </div>
           </div>
         </CardHeader>
-
         <CardContent className="space-y-4">
           {/* Barra de búsqueda */}
           <div className="relative">
@@ -280,7 +260,6 @@ export default function InactiveCustomersTable() {
               className="pl-9"
             />
           </div>
-
           {/* Tabla */}
           <div className="rounded-lg border">
             <Table>
@@ -302,7 +281,6 @@ export default function InactiveCustomersTable() {
                       customer.mobile ?? null
                     )
                     const whatsappLink = getWhatsAppLink(phone, customer.customer_name)
-                    
                     return (
                       <TableRow key={`${customer.customer_name}-${index}`} className="hover:bg-muted/50">
                         <TableCell className="max-w-[200px]">
@@ -334,7 +312,6 @@ export default function InactiveCustomersTable() {
                             </div>
                           </div>
                         </TableCell>
-                        
                         {/* Columna de contacto - visible en tablet+ */}
                         <TableCell className="text-center hidden @md/card:table-cell">
                           <div className="flex flex-col items-center gap-1">
@@ -374,7 +351,6 @@ export default function InactiveCustomersTable() {
                             )}
                           </div>
                         </TableCell>
-                        
                         <TableCell className="text-center">
                           <Badge variant="outline">
                             {customer.invoice_count}
@@ -444,7 +420,6 @@ export default function InactiveCustomersTable() {
               </TableBody>
             </Table>
           </div>
-
           {/* Paginación */}
           {totalPages > 1 && !searchTerm && (
             <div className="flex items-center justify-between">
@@ -506,7 +481,6 @@ export default function InactiveCustomersTable() {
               </Pagination>
             </div>
           )}
-          
           {/* Mensaje de filtro activo */}
           {searchTerm && (
             <div className="text-center text-sm text-muted-foreground border-t pt-3">

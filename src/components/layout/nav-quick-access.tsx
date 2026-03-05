@@ -1,5 +1,4 @@
 "use client"
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -11,16 +10,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
-
 interface QuickAccessItem {
   name: string
   url: string
   icon: LucideIcon
 }
-
 export function NavQuickAccess({ items }: { items: QuickAccessItem[] }) {
   const pathname = usePathname()
-
   return (
     <SidebarGroup className="mt-auto">
       <SidebarGroupLabel>Quick Access</SidebarGroupLabel>

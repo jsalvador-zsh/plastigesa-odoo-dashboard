@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import {
   Card,
@@ -11,7 +10,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from "recharts"
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltipContent } from "@/components/ui/chart"
-
 interface SalesmanRanking {
   name: string
   sales: number
@@ -19,24 +17,20 @@ interface SalesmanRanking {
   customers: number
   avgTicket: number
 }
-
 const chartConfig = {
   vendors: {
     color: "var(--chart-4)",
     label: "Vendedores",
   },
 } satisfies ChartConfig
-
 export default function SalesRankingChart() {
   const [data, setData] = useState<SalesmanRanking[]>([])
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch("/api/reports/sales-team-stats")
         const json = await res.json()
-
         if (json.success) {
           setData(json.data.salesmenRanking)
         }
@@ -46,10 +40,8 @@ export default function SalesRankingChart() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [])
-
   if (loading) {
     return (
       <Card>
@@ -63,7 +55,6 @@ export default function SalesRankingChart() {
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>

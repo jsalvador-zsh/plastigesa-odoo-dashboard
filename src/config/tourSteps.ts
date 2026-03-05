@@ -1,6 +1,5 @@
 // src/config/tourSteps.ts
 import { DriveStep } from "driver.js";
-
 export const DASHBOARD_TOUR: DriveStep[] = [
   {
     element: "#tour-sidebar",
@@ -35,7 +34,6 @@ export const DASHBOARD_TOUR: DriveStep[] = [
     }
   }
 ];
-
 export const CUSTOMER_REPORT_TOUR: DriveStep[] = [
   {
     element: "#tour-customer-stats",
@@ -78,7 +76,6 @@ export const CUSTOMER_REPORT_TOUR: DriveStep[] = [
     }
   }
 ];
-
 export const SALES_SUMMARY_TOUR: DriveStep[] = [
   {
     element: "#tour-sales-stats",
@@ -105,7 +102,6 @@ export const SALES_SUMMARY_TOUR: DriveStep[] = [
     }
   }
 ];
-
 export const CUSTOMER_ANALYTICS_TOUR: DriveStep[] = [
   {
     element: "#tour-inactive-customers",

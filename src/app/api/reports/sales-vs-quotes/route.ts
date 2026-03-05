@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import db from "@/lib/db"
 import { subMonths, startOfMonth } from "date-fns"
-
 interface SalesVsQuotes {
   period: string
   type: "quote" | "invoice"
   total: number
 }
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const range = searchParams.get("range") || "month" // 'month' | 'quarter' | 'year'
-    
     // Ajusta el número de periodos según el rango
     const periodCount = range === "year" ? 12 : range === "quarter" ? 6 : 6
     const dateFrom = subMonths(new Date(), periodCount)
     const fromStr = startOfMonth(dateFrom).toISOString().split("T")[0]
-    
     const result = await db.query(`
       WITH invoices_gross AS (
         SELECT 
@@ -86,24 +82,16 @@ export async function GET(req: NextRequest) {
       WHERE period IS NOT NULL
       ORDER BY period ASC, type ASC;
     `, [range, fromStr])
-
     const data: SalesVsQuotes[] = result.rows.map(row => ({
       period: row.period,
       type: row.type,
       total: parseFloat(row.total) || 0
     }))
-
     // Debug info para verificar los cálculos
-    console.log(`Sales vs Quotes data for range ${range}:`)
-    console.log("Sample periods:", data.slice(0, 6))
-    
     // Mostrar totales por tipo para debug
     const invoiceTotals = data.filter(d => d.type === 'invoice').reduce((sum, d) => sum + d.total, 0)
     const quoteTotals = data.filter(d => d.type === 'quote').reduce((sum, d) => sum + d.total, 0)
-    console.log(`Total invoices (net): ${invoiceTotals}, Total quotes: ${quoteTotals}`)
-
     return NextResponse.json({ success: true, data })
-    
   } catch (error) {
     console.error("Error fetching sales vs quotes:", error)
     return NextResponse.json(

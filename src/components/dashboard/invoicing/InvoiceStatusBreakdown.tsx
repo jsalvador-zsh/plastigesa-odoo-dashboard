@@ -1,6 +1,5 @@
 // src/components/dashboard/invoicing/InvoiceStatusBreakdown.tsx
 "use client"
-
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -8,22 +7,18 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, AlertCircle, FileCheck } from "lucide-react"
 import type { TimeRange } from "@/types/invoice"
 import { useInvoicesByState } from "@/hooks/useInvoices"
-
 const TIME_RANGE_OPTIONS = [
   { value: "week", label: "Última semana" },
   { value: "month", label: "Este mes" },
   { value: "quarter", label: "Trimestre" },
   { value: "year", label: "Año" }
 ]
-
 export default function InvoiceStatusBreakdown() {
   const [range, setRange] = useState<TimeRange>("month")
   const { data, loading } = useInvoicesByState(range)
-
   if (loading) {
     return null
   }
-
   const getIcon = (state: string) => {
     switch (state) {
       case 'posted': return <CheckCircle className="h-5 w-5 text-green-600" />
@@ -32,7 +27,6 @@ export default function InvoiceStatusBreakdown() {
       default: return <FileCheck className="h-5 w-5 text-blue-600" />
     }
   }
-
   return (
     <Card>
       <CardHeader>
@@ -77,4 +71,3 @@ export default function InvoiceStatusBreakdown() {
     </Card>
   )
 }
-

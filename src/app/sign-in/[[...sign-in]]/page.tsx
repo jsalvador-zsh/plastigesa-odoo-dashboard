@@ -1,5 +1,4 @@
 import { SignIn } from '@clerk/nextjs';
-
 export default function Page() {
     return (
         <div className="md:grid md:grid-cols-2 items-center justify-center">

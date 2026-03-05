@@ -1,6 +1,5 @@
 // src/components/dashboard/pos/POSTopProductsStats.tsx
 "use client"
-
 import { useState } from "react"
 import {
   Card,
@@ -28,11 +27,9 @@ import {
   Award,
   ShoppingBag
 } from "lucide-react"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSTopProducts } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
@@ -40,23 +37,19 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Este trimestre" },
   { value: "year", label: "Este año" }
 ]
-
 const LIMIT_OPTIONS = [
   { value: "5", label: "Top 5" },
   { value: "10", label: "Top 10" },
   { value: "15", label: "Top 15" },
   { value: "20", label: "Top 20" }
 ]
-
 export default function POSTopProductsStats() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const [limit, setLimit] = useState<number>(10)
   const { data, loading, error, refetch } = usePOSTopProducts(range, limit)
-
   // Calcular el total para estadísticas
   const totalQuantity = data.reduce((sum, item) => sum + item.quantity_sold, 0)
   const totalAmount = data.reduce((sum, item) => sum + item.total_amount, 0)
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -69,7 +62,6 @@ export default function POSTopProductsStats() {
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
-
         <div className="grid grid-cols-1 @lg/main:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}>
@@ -83,7 +75,6 @@ export default function POSTopProductsStats() {
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="space-y-4">
@@ -104,7 +95,6 @@ export default function POSTopProductsStats() {
       </div>
     )
   }
-
   return (
     <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -116,7 +106,6 @@ export default function POSTopProductsStats() {
               Métricas y ranking detallado - {data.length} productos
             </p>
           </div>
-
           <div className="flex items-center gap-4">
             <Select value={range} onValueChange={(value) => setRange(value as POSTimeRange)}>
               <SelectTrigger className="w-40">
@@ -130,7 +119,6 @@ export default function POSTopProductsStats() {
                 ))}
               </SelectContent>
             </Select>
-
             <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value, 10))}>
               <SelectTrigger className="w-24">
                 <SelectValue placeholder="Límite" />
@@ -143,13 +131,11 @@ export default function POSTopProductsStats() {
                 ))}
               </SelectContent>
             </Select>
-
             <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
-
         {data.length > 0 ? (
           <>
             {/* Stats Cards */}
@@ -171,7 +157,6 @@ export default function POSTopProductsStats() {
                   </p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -184,7 +169,6 @@ export default function POSTopProductsStats() {
                   </p>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -201,7 +185,6 @@ export default function POSTopProductsStats() {
               </Card>
             </div>
               {/* Lista detallada de productos */}
-          
           </>
         ) : (
           <div className="text-center py-12">

@@ -13,40 +13,32 @@ import type {
   InvoiceTrend,
   PaymentAnalysis
 } from "@/types/invoice"
-
 export class InvoiceService {
   // Obtener condición de fecha según el rango
   static getDateCondition(range: TimeRange, dateField: string = 'am.invoice_date'): string {
     const today = new Date()
-
     switch (range) {
       case "week":
         const startOfWeek = new Date(today)
         startOfWeek.setDate(today.getDate() - 7)
         return `${dateField} >= '${startOfWeek.toISOString().split('T')[0]}'`
-
       case "month":
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
         return `${dateField} >= '${startOfMonth.toISOString().split('T')[0]}'`
-
       case "quarter":
         const currentQuarter = Math.floor(today.getMonth() / 3)
         const startOfQuarter = new Date(today.getFullYear(), currentQuarter * 3, 1)
         return `${dateField} >= '${startOfQuarter.toISOString().split('T')[0]}'`
-
       case "year":
         const startOfYear = new Date(today.getFullYear(), 0, 1)
         return `${dateField} >= '${startOfYear.toISOString().split('T')[0]}'`
-
       case "all":
         return "1=1" // Sin filtro de fecha
-
       default:
         const startOfDefaultMonth = new Date(today.getFullYear(), today.getMonth(), 1)
         return `${dateField} >= '${startOfDefaultMonth.toISOString().split('T')[0]}'`
     }
   }
-
   // Obtener descripción del período
   static getPeriodDescription(range: TimeRange): string {
     const now = new Date()
@@ -54,7 +46,6 @@ export class InvoiceService {
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
-
     switch (range) {
       case "week":
         return "Últimos 7 días"
@@ -71,18 +62,15 @@ export class InvoiceService {
         return `${monthNames[now.getMonth()]} ${now.getFullYear()}`
     }
   }
-
   // Obtener estadísticas generales de facturación
   static async getInvoiceStats(range: TimeRange, type?: InvoiceType): Promise<InvoiceStats> {
     const dateCondition = this.getDateCondition(range)
-    
     let typeCondition = ""
     if (type && type !== 'entry') {
       typeCondition = `AND am.type = '${type}'`
     } else if (!type) {
       typeCondition = `AND am.type IN ('out_invoice', 'out_refund')`
     }
-
     const query = `
       SELECT 
         COUNT(*) as total_invoices,
@@ -100,10 +88,8 @@ export class InvoiceService {
         AND am.state != 'draft'
         ${typeCondition}
     `
-
     const result = await db.query(query)
     const row = result.rows[0]
-
     return {
       totalInvoices: parseInt(String(row.total_invoices) || '0', 10),
       totalAmount: parseFloat(String(row.total_amount) || '0'),
@@ -114,7 +100,6 @@ export class InvoiceService {
       period: this.getPeriodDescription(range)
     }
   }
-
   // Obtener facturas con paginación
   static async getInvoices(
     range: TimeRange,
@@ -126,22 +111,18 @@ export class InvoiceService {
   ): Promise<{ data: Invoice[], meta: any }> {
     const dateCondition = this.getDateCondition(range)
     const offset = (page - 1) * limit
-
     let typeCondition = ""
     if (type && type !== 'entry') {
       typeCondition = `AND am.type = '${type}'`
     }
-
     let stateCondition = ""
     if (state) {
       stateCondition = `AND am.state = '${state}'`
     }
-
     let journalCondition = ""
     if (journalId) {
       journalCondition = `AND am.journal_id = ${journalId}`
     }
-
     const baseQuery = `
       SELECT 
         am.id,
@@ -176,7 +157,6 @@ export class InvoiceService {
         ${journalCondition}
       ORDER BY am.invoice_date DESC, am.id DESC
     `
-
     const countQuery = `
       SELECT COUNT(*) as total
       FROM account_move am
@@ -185,16 +165,13 @@ export class InvoiceService {
         ${stateCondition}
         ${journalCondition}
     `
-
     try {
       const [countResult, dataResult] = await Promise.all([
         db.query(countQuery),
         db.query(`${baseQuery} OFFSET $1 LIMIT $2`, [offset, limit])
       ])
-
       const total = parseInt(countResult.rows[0].total, 10)
       const totalPages = Math.ceil(total / limit)
-
       const processedData: Invoice[] = dataResult.rows.map(row => ({
         id: parseInt(String(row.id), 10),
         name: String(row.name || ''),
@@ -212,7 +189,6 @@ export class InvoiceService {
         currency_name: row.currency_name ? String(row.currency_name) : undefined,
         invoice_user_name: row.invoice_user_name ? String(row.invoice_user_name) : undefined
       }))
-
       return {
         data: processedData,
         meta: {
@@ -227,11 +203,9 @@ export class InvoiceService {
       throw error
     }
   }
-
   // Obtener facturación por tipo
   static async getInvoicesByType(range: TimeRange): Promise<InvoicesByType[]> {
     const dateCondition = this.getDateCondition(range)
-
     const query = `
       SELECT 
         am.type,
@@ -245,17 +219,14 @@ export class InvoiceService {
       GROUP BY am.type
       ORDER BY total_amount DESC
     `
-
     const result = await db.query(query)
     const totalAmount = result.rows.reduce((sum, row) => sum + parseFloat(String(row.total_amount) || '0'), 0)
-
     const typeLabels: Record<string, string> = {
       out_invoice: 'Facturas',
       out_refund: 'Notas de Crédito',
       in_invoice: 'Facturas de Proveedor',
       in_refund: 'NC de Proveedor'
     }
-
     return result.rows.map(row => ({
       type: row.type as InvoiceType,
       type_label: typeLabels[row.type] || row.type,
@@ -264,11 +235,9 @@ export class InvoiceService {
       percentage: totalAmount > 0 ? (parseFloat(String(row.total_amount) || '0') / totalAmount) * 100 : 0
     }))
   }
-
   // Obtener facturación por diario
   static async getInvoicesByJournal(range: TimeRange): Promise<InvoicesByJournal[]> {
     const dateCondition = this.getDateCondition(range)
-
     const query = `
       SELECT 
         aj.id as journal_id,
@@ -285,10 +254,8 @@ export class InvoiceService {
       GROUP BY aj.id, aj.name, aj.code
       ORDER BY total_amount DESC
     `
-
     const result = await db.query(query)
     const totalAmount = result.rows.reduce((sum, row) => sum + parseFloat(String(row.total_amount) || '0'), 0)
-
     return result.rows.map(row => ({
       journal_id: parseInt(String(row.journal_id), 10),
       journal_name: String(row.journal_name || ''),
@@ -298,11 +265,9 @@ export class InvoiceService {
       percentage: totalAmount > 0 ? (parseFloat(String(row.total_amount) || '0') / totalAmount) * 100 : 0
     }))
   }
-
   // Obtener facturación por estado
   static async getInvoicesByState(range: TimeRange): Promise<InvoicesByState[]> {
     const dateCondition = this.getDateCondition(range)
-
     const query = `
       SELECT 
         am.state,
@@ -314,15 +279,12 @@ export class InvoiceService {
       GROUP BY am.state
       ORDER BY count DESC
     `
-
     const result = await db.query(query)
-
     const stateLabels: Record<string, string> = {
       draft: 'Borrador',
       posted: 'Publicado',
       cancel: 'Cancelado'
     }
-
     return result.rows.map(row => ({
       state: row.state as InvoiceState,
       state_label: stateLabels[row.state] || row.state,
@@ -330,7 +292,6 @@ export class InvoiceService {
       total_amount: parseFloat(String(row.total_amount) || '0')
     }))
   }
-
   // Obtener lista de diarios
   static async getJournals(): Promise<Journal[]> {
     const query = `
@@ -345,9 +306,7 @@ export class InvoiceService {
         AND active = true
       ORDER BY name
     `
-
     const result = await db.query(query)
-
     return result.rows.map(row => ({
       id: parseInt(String(row.id), 10),
       name: String(row.name || ''),
@@ -356,11 +315,9 @@ export class InvoiceService {
       active: Boolean(row.active)
     }))
   }
-
   // Obtener tendencias de facturación
   static async getInvoiceTrends(range: TimeRange): Promise<InvoiceTrend[]> {
     const groupBy = range === 'year' ? 'YYYY-MM' : range === 'quarter' ? 'YYYY-MM' : 'YYYY-MM-DD'
-    
     const query = `
       SELECT 
         to_char(am.invoice_date, '${groupBy}') as period,
@@ -380,9 +337,7 @@ export class InvoiceService {
       GROUP BY period
       ORDER BY period ASC
     `
-
     const result = await db.query(query)
-
     return result.rows.map(row => ({
       period: String(row.period || ''),
       invoices: parseInt(String(row.invoices) || '0', 10),
@@ -392,11 +347,9 @@ export class InvoiceService {
       total_refunds_amount: parseFloat(String(row.total_refunds_amount) || '0')
     }))
   }
-
   // Obtener análisis de pagos
   static async getPaymentAnalysis(range: TimeRange): Promise<PaymentAnalysis> {
     const dateCondition = this.getDateCondition(range)
-
     const query = `
       SELECT 
         SUM(CASE WHEN am.type = 'out_invoice' THEN am.amount_total ELSE 0 END) as total_invoiced,
@@ -407,14 +360,11 @@ export class InvoiceService {
         AND am.state = 'posted'
         AND am.type = 'out_invoice'
     `
-
     const result = await db.query(query)
     const row = result.rows[0]
-
     const totalInvoiced = parseFloat(String(row.total_invoiced) || '0')
     const totalPaid = parseFloat(String(row.total_paid) || '0')
     const totalPending = parseFloat(String(row.total_pending) || '0')
-
     return {
       total_invoiced: totalInvoiced,
       total_paid: totalPaid,
@@ -423,4 +373,3 @@ export class InvoiceService {
     }
   }
 }
-

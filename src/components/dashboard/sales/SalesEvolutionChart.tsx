@@ -1,6 +1,5 @@
 // src/components/sales/SalesEvolutionChart.tsx
 "use client"
-
 import { useState, useEffect } from "react"
 import {
   Card,
@@ -34,42 +33,33 @@ import {
   AlertCircle,
   TrendingUp
 } from "lucide-react"
-
 import type { TimeRange } from "@/types/sales"
 import { formatCurrency } from "@/utils/chartUtils"
-
 interface EvolutionData {
   period: number
   total_orders: number
   total_amount: number
   avg_ticket: number
 }
-
 const RANGE_OPTIONS = [
   { value: "month", label: "Por día (mes actual)" },
   { value: "quarter", label: "Por semana (trimestre actual)" },
   { value: "year", label: "Por mes (año actual)" }
 ]
-
 export default function SalesEvolutionChart() {
   const [data, setData] = useState<EvolutionData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [range, setRange] = useState<TimeRange>("month")
-
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-
       const res = await fetch(`/api/reports/sales-evolution?range=${range}`)
-      
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json = await res.json()
-      
       if (json.success) {
         setData(json.data)
       } else {
@@ -82,18 +72,15 @@ export default function SalesEvolutionChart() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchData()
   }, [range])
-
   // Formatear el label del eje X según el rango de tiempo
   const formatXAxis = (period: number) => {
     if (range === "month") return `Día ${period}`
     if (range === "quarter") return `Sem ${period}`
     return new Date(0, period - 1).toLocaleString('es', { month: 'short' })
   }
-
   // Custom tooltip para el gráfico
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -117,7 +104,6 @@ export default function SalesEvolutionChart() {
     }
     return null
   }
-
   if (loading) {
     return (
       <Card className="@container/card">
@@ -139,7 +125,6 @@ export default function SalesEvolutionChart() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card className="@container/card">
@@ -163,7 +148,6 @@ export default function SalesEvolutionChart() {
       </Card>
     )
   }
-
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -177,7 +161,6 @@ export default function SalesEvolutionChart() {
               Ventas confirmadas por {range === 'month' ? 'día' : range === 'quarter' ? 'semana' : 'mes'}
             </CardDescription>
           </div>
-          
           <div className="flex items-center gap-4">
             <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
               <SelectTrigger className="w-48">
@@ -191,14 +174,12 @@ export default function SalesEvolutionChart() {
                 ))}
               </SelectContent>
             </Select>
-            
             <Button onClick={fetchData} variant="outline" size="default" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-
       <CardContent>
         <div className="h-[400px] w-full">
           {data.length > 0 ? (
@@ -232,7 +213,6 @@ export default function SalesEvolutionChart() {
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                
                 <Area
                   type="monotone"
                   dataKey="total_amount"

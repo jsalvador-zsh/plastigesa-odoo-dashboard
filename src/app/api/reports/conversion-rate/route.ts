@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import db from "@/lib/db"
 import { subMonths, startOfMonth } from "date-fns"
-
 interface ConversionRate {
   period: string
   quotes_count: number
@@ -11,17 +10,14 @@ interface ConversionRate {
   conversion_rate_count: number
   conversion_rate_value: number
 }
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const range = searchParams.get("range") || "month" // 'month' | 'quarter' | 'year'
-    
     // Ajusta el número de periodos según el rango
     const periodCount = range === "year" ? 12 : range === "quarter" ? 6 : 6
     const dateFrom = subMonths(new Date(), periodCount)
     const fromStr = startOfMonth(dateFrom).toISOString().split("T")[0]
-    
     const result = await db.query(`
       WITH quotes_data AS (
         SELECT 
@@ -88,7 +84,6 @@ export async function GET(req: NextRequest) {
       WHERE period IS NOT NULL
       ORDER BY period ASC;
     `, [range, fromStr])
-
     const data: ConversionRate[] = result.rows.map(row => ({
       period: row.period,
       quotes_count: parseInt(row.quotes_count) || 0,
@@ -98,18 +93,11 @@ export async function GET(req: NextRequest) {
       conversion_rate_count: parseFloat(row.conversion_rate_count) || 0,
       conversion_rate_value: parseFloat(row.conversion_rate_value) || 0
     }))
-
     // Debug info
-    console.log(`Conversion rate data for range ${range}:`)
-    console.log("Total periods:", data.length)
-    
     if (data.length > 0) {
       const avgConversionRate = data.reduce((sum, d) => sum + d.conversion_rate_count, 0) / data.length
-      console.log("Average conversion rate:", avgConversionRate.toFixed(2) + "%")
     }
-
     return NextResponse.json({ success: true, data })
-    
   } catch (error) {
     console.error("Error fetching conversion rate:", error)
     return NextResponse.json(

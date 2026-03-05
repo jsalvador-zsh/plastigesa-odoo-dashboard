@@ -1,6 +1,5 @@
 // src/components/dashboard/pos/POSTopProductsChart.tsx
 "use client"
-
 import { useState } from "react"
 import {
   Card,
@@ -44,11 +43,9 @@ import {
 } from "@/components/ui/toggle-group"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSTopProducts } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Semana" },
@@ -56,19 +53,16 @@ const POS_RANGE_OPTIONS = [
   { value: "quarter", label: "Trim." },
   { value: "year", label: "Año" }
 ]
-
 const LIMIT_OPTIONS = [
   { value: "5", label: "Top 5" },
   { value: "10", label: "Top 10" },
   { value: "15", label: "Top 15" },
   { value: "20", label: "Top 20" }
 ]
-
 // Función para formatear nombre de producto
 function formatProductName(name: string, maxLength: number = 15): string {
   return name.length > maxLength ? name.slice(0, maxLength) + "..." : name
 }
-
 // Función para obtener descripción del período
 function getPeriodDescription(range: POSTimeRange): string {
   const now = new Date()
@@ -76,7 +70,6 @@ function getPeriodDescription(range: POSTimeRange): string {
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ]
-
   switch (range) {
     case "today":
       return `Hoy ${now.getDate()} de ${monthNames[now.getMonth()]}`
@@ -93,53 +86,43 @@ function getPeriodDescription(range: POSTimeRange): string {
       return `Hoy ${now.getDate()} de ${monthNames[now.getMonth()]}`
   }
 }
-
 // Validar datos del gráfico
 function validateChartData(data: any[]): boolean {
   if (!Array.isArray(data) || data.length === 0) {
     return false
   }
-  
   return data.every(item => {
     const hasName = typeof item.product_name === 'string' && item.product_name.length > 0
     const hasQuantity = typeof item.quantity_sold === 'number' && 
                        !isNaN(item.quantity_sold) && 
                        item.quantity_sold >= 0
-    
     return hasName && hasQuantity
   })
 }
-
 export default function POSTopProductsChart() {
   const [range, setRange] = useState<POSTimeRange>("today")
   const [limit, setLimit] = useState<number>(10)
   const [page, setPage] = useState(1)
-  
   const { data, loading, error, refetch } = usePOSTopProducts(range, limit)
-
   // Simular paginación en frontend ya que la API no tiene paginación
   const itemsPerPage = 10
   const totalPages = Math.ceil(data.length / itemsPerPage)
   const startIndex = (page - 1) * itemsPerPage
   const paginatedData = data.slice(startIndex, startIndex + itemsPerPage)
-
   const handleLimitChange = (value: string) => {
     setLimit(parseInt(value, 10))
     setPage(1)
   }
-
   const handleRangeChange = (value: string | POSTimeRange) => {
     setRange(value as POSTimeRange)
     setPage(1)
   }
-
   const chartConfig: ChartConfig = {
     quantity_sold: {
       color: "hsl(var(--chart-1))",
       label: "Cantidad vendida por producto",
     },
   }
-
   // Loading state
   if (loading) {
     return (
@@ -157,7 +140,6 @@ export default function POSTopProductsChart() {
       </Card>
     )
   }
-
   // Error state
   if (error) {
     return (
@@ -188,10 +170,8 @@ export default function POSTopProductsChart() {
       </Card>
     )
   }
-
   // Validar datos del gráfico
   const isValidData = validateChartData(paginatedData)
-
   return (
     <div className="space-y-4">
       <Card className="@container/card">
@@ -223,7 +203,6 @@ export default function POSTopProductsChart() {
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
-
               <Select value={range} onValueChange={handleRangeChange}>
                 <SelectTrigger
                   className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
@@ -240,7 +219,6 @@ export default function POSTopProductsChart() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Select value={limit.toString()} onValueChange={handleLimitChange}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Top" />
@@ -253,7 +231,6 @@ export default function POSTopProductsChart() {
                   ))}
                 </SelectContent>
               </Select>
-
               <Button
                 onClick={refetch}
                 variant="outline"
@@ -266,7 +243,6 @@ export default function POSTopProductsChart() {
             </div>
           </CardAction>
         </CardHeader>
-
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
           {isValidData ? (
             <ChartContainer
@@ -293,7 +269,6 @@ export default function POSTopProductsChart() {
                         const quantity = product?.quantity_sold || 0
                         const totalAmount = product?.total_amount || 0
                         const avgPrice = product?.avg_price || 0
-                        
                         return [
                           `${quantity} unidades`,
                           <div key="details" className="text-xs text-muted-foreground mt-1">
@@ -330,7 +305,6 @@ export default function POSTopProductsChart() {
               </div>
             </div>
           )}
-
           {totalPages > 1 && (
             <Pagination className="mt-4 justify-end">
               <PaginationContent>

@@ -1,16 +1,13 @@
 // src/components/dashboard/overview/SalesOverview.tsx
 "use client"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ShoppingCart, TrendingUp, FileText, DollarSign } from "lucide-react"
 import { useSalesStats } from "@/hooks/useSales"
 import { formatCurrency } from "@/utils/chartUtils"
 import Link from "next/link"
-
 export default function SalesOverview() {
   const { stats, loading } = useSalesStats({ range: 'month' })
-
   if (loading) {
     return (
       <Card>
@@ -25,7 +22,6 @@ export default function SalesOverview() {
       </Card>
     )
   }
-
   return (
     <Link href="/dashboard/sales/summary-sales">
       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -67,4 +63,3 @@ export default function SalesOverview() {
     </Link>
   )
 }
-

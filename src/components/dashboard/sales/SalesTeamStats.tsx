@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { 
   Card, 
@@ -14,7 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUpIcon, TrendingDownIcon, UsersIcon, TargetIcon, TrophyIcon } from "lucide-react"
-
 interface SalesTeamStats {
   totalSalesmen: number
   currentMonthSales: number
@@ -29,17 +27,14 @@ interface SalesTeamStats {
     customers: number
   }
 }
-
 export default function SalesTeamStats() {
   const [stats, setStats] = useState<SalesTeamStats | null>(null)
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch("/api/reports/sales-team-stats")
         const json = await res.json()
-        
         if (json.success) {
           setStats(json.data)
         }
@@ -49,14 +44,11 @@ export default function SalesTeamStats() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [])
-
   const renderBadge = (change: number) => {
     const isPositive = change >= 0
     const Icon = isPositive ? TrendingUpIcon : TrendingDownIcon
-    
     return (
       <Badge variant="outline">
         <Icon className="size-3.5" />
@@ -64,7 +56,6 @@ export default function SalesTeamStats() {
       </Badge>
     )
   }
-
   if (loading || !stats) {
     return (
       <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
@@ -80,7 +71,6 @@ export default function SalesTeamStats() {
       </div>
     )
   }
-
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       {/* Ventas Totales del Mes */}
@@ -106,7 +96,6 @@ export default function SalesTeamStats() {
           </div>
         </CardFooter>
       </Card>
-
       {/* Vendedores Activos */}
       <Card className="@container/card">
         <CardHeader>
@@ -125,7 +114,6 @@ export default function SalesTeamStats() {
           </div>
         </CardFooter>
       </Card>
-
       {/* Top Vendedor */}
       <Card className="@container/card">
         <CardHeader>
@@ -144,7 +132,6 @@ export default function SalesTeamStats() {
           </div>
         </CardFooter>
       </Card>
-
       {/* Promedio por Vendedor */}
       <Card className="@container/card">
         <CardHeader>

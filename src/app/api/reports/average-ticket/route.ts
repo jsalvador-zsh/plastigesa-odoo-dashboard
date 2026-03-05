@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import db from "@/lib/db"
 import { subMonths, startOfMonth } from "date-fns"
-
 interface AverageTicket {
   period: string
   total_sales: number
@@ -9,17 +8,14 @@ interface AverageTicket {
   average_ticket: number
   median_ticket: number
 }
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const range = searchParams.get("range") || "month" // 'month' | 'quarter' | 'year'
-    
     // Ajusta el número de periodos según el rango
     const periodCount = range === "year" ? 12 : range === "quarter" ? 6 : 6
     const dateFrom = subMonths(new Date(), periodCount)
     const fromStr = startOfMonth(dateFrom).toISOString().split("T")[0]
-    
     const result = await db.query(`
       WITH invoice_data AS (
         SELECT 
@@ -59,7 +55,6 @@ export async function GET(req: NextRequest) {
       WHERE period IS NOT NULL
       ORDER BY period ASC;
     `, [range, fromStr])
-
     const data: AverageTicket[] = result.rows.map(row => ({
       period: row.period,
       total_sales: parseFloat(row.total_sales) || 0,
@@ -67,18 +62,10 @@ export async function GET(req: NextRequest) {
       average_ticket: parseFloat(row.average_ticket) || 0,
       median_ticket: parseFloat(row.median_ticket) || 0
     }))
-
-    // Debug info
-    console.log(`Average ticket data for range ${range}:`)
-    console.log("Total periods:", data.length)
-    
     if (data.length > 0) {
       const avgTicketOverall = data.reduce((sum, d) => sum + d.average_ticket, 0) / data.length
-      console.log("Overall average ticket:", avgTicketOverall.toFixed(2))
     }
-
     return NextResponse.json({ success: true, data })
-    
   } catch (error) {
     console.error("Error fetching average ticket:", error)
     return NextResponse.json(

@@ -1,5 +1,4 @@
 "use client"
-
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -19,7 +18,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-
 export function NavMain({
   items,
 }: {
@@ -35,14 +33,12 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
-
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isActive = pathname === item.url || item.isActive
-          
           return (
             <Collapsible
               key={item.title}
@@ -63,7 +59,6 @@ export function NavMain({
                     )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
-                
                 {item.items && (
                   <CollapsibleContent>
                     <SidebarMenuSub>

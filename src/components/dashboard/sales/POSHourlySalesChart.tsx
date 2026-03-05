@@ -1,6 +1,5 @@
 // src/components/dashboard/pos/POSHourlySalesChart.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -36,11 +35,9 @@ import {
   ReferenceLine,
   Cell
 } from "recharts"
-
 import { usePOSHourlySales } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
 import { ChartTooltip } from "@/components/ui/chart"
-
 interface HourlyChartData {
   hour: number
   hour_label: string
@@ -48,40 +45,34 @@ interface HourlyChartData {
   total_amount: number
   avg_ticket: number
 }
-
 const HOUR_COLORS = {
   morning: "var(--chart-2)",
   afternoon: "var(--chart-4)",
   evening: "#8B5CF6",
   night: "#6B7280",
 }
-
 const getHourColor = (hour: number): string => {
   if (hour >= 6 && hour < 12) return HOUR_COLORS.morning
   if (hour >= 12 && hour < 18) return HOUR_COLORS.afternoon
   if (hour >= 18 && hour < 22) return HOUR_COLORS.evening
   return HOUR_COLORS.night
 }
-
 const getHourPeriod = (hour: number): string => {
   if (hour >= 6 && hour < 12) return "Mañana"
   if (hour >= 12 && hour < 18) return "Tarde"
   if (hour >= 18 && hour < 22) return "Noche"
   return "Madrugada"
 }
-
 export default function POSHourlySalesChart() {
   const today = new Date().toISOString().split('T')[0]
   const [selectedDate, setSelectedDate] = useState<string>(today)
   const { data, loading, error, refetch } = usePOSHourlySales(selectedDate)
-
   // Procesar datos para el gráfico
   const chartData: HourlyChartData[] = data.map(item => ({
     ...item,
     hour_label: `${item.hour.toString().padStart(2, '0')}:00`,
     avg_ticket: item.sales_count > 0 ? item.total_amount / item.sales_count : 0
   }))
-
   // Calcular estadísticas
   const totalSales = data.reduce((sum, item) => sum + item.sales_count, 0)
   const totalAmount = data.reduce((sum, item) => sum + item.total_amount, 0)
@@ -90,12 +81,10 @@ export default function POSHourlySalesChart() {
     item.sales_count > max.sales_count ? item : max, 
     { hour: 0, sales_count: 0, total_amount: 0 }
   )
-
   // Filtrar solo horas con ventas para mostrar el rango activo
   const activeHours = data.filter(item => item.sales_count > 0)
   const firstSale = activeHours.length > 0 ? Math.min(...activeHours.map(h => h.hour)) : 0
   const lastSale = activeHours.length > 0 ? Math.max(...activeHours.map(h => h.hour)) : 23
-
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -130,7 +119,6 @@ export default function POSHourlySalesChart() {
     }
     return null
   }
-
   if (loading) {
     return (
       <Card>
@@ -152,7 +140,6 @@ export default function POSHourlySalesChart() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card>
@@ -176,7 +163,6 @@ export default function POSHourlySalesChart() {
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -190,7 +176,6 @@ export default function POSHourlySalesChart() {
               Distribución horaria de ventas
             </CardDescription>
           </div>
-          
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -208,9 +193,7 @@ export default function POSHourlySalesChart() {
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-6">
-
         {/* Periods Legend */}
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
@@ -222,14 +205,12 @@ export default function POSHourlySalesChart() {
             <span className="text-xs">Tarde (12-18h)</span>
           </div>
         </div>
-
         {/* Chart */}
         {totalSales > 0 ? (
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
-
               >
                 <XAxis 
                   dataKey="hour_label" 
@@ -238,7 +219,6 @@ export default function POSHourlySalesChart() {
                   axisLine={false}
                 />
                 <ChartTooltip cursor={false} content={<CustomTooltip />} />
-                
                 <Bar 
                   dataKey="sales_count" 
                   radius={8}
@@ -271,7 +251,6 @@ export default function POSHourlySalesChart() {
             </div>
           </div>
         )}
-
         {/* Activity Summary */}
         {activeHours.length > 0 && (
           <div className="pt-4 border-t">

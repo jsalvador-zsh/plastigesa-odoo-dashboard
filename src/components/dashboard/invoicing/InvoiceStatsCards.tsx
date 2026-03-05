@@ -1,6 +1,5 @@
 // src/components/dashboard/invoicing/InvoiceStatsCards.tsx
 "use client"
-
 import { useState } from "react"
 import { 
   Card, 
@@ -31,11 +30,9 @@ import {
   TrendingUp,
   Calculator
 } from "lucide-react"
-
 import type { TimeRange } from "@/types/invoice"
 import { useInvoiceStats } from "@/hooks/useInvoices"
 import { formatCurrency } from "@/utils/chartUtils"
-
 const TIME_RANGE_OPTIONS = [
   { value: "week", label: "Última semana" },
   { value: "month", label: "Este mes" },
@@ -43,11 +40,9 @@ const TIME_RANGE_OPTIONS = [
   { value: "year", label: "Este año" },
   { value: "all", label: "Todo" }
 ]
-
 export default function InvoiceStatsCards() {
   const [range, setRange] = useState<TimeRange>("month")
   const { data: stats, loading, error, refetch } = useInvoiceStats(range)
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -72,7 +67,6 @@ export default function InvoiceStatsCards() {
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="space-y-4">
@@ -95,11 +89,8 @@ export default function InvoiceStatsCards() {
       </div>
     )
   }
-
   if (!stats) return null
-
   const paymentRate = stats.totalAmount > 0 ? (stats.totalPaid / stats.totalAmount) * 100 : 0
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -110,7 +101,6 @@ export default function InvoiceStatsCards() {
             Resumen general para {stats.period}
           </p>
         </div>
-        
         <div className="flex items-center gap-2">
           <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
             <SelectTrigger className="w-48">
@@ -124,13 +114,11 @@ export default function InvoiceStatsCards() {
               ))}
             </SelectContent>
           </Select>
-          
           <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-6">
         {/* Total Facturas */}
@@ -151,7 +139,6 @@ export default function InvoiceStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Monto Total */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -172,7 +159,6 @@ export default function InvoiceStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Monto Pagado */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -193,7 +179,6 @@ export default function InvoiceStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Monto Pendiente */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -214,7 +199,6 @@ export default function InvoiceStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Facturas Canceladas */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -233,7 +217,6 @@ export default function InvoiceStatsCards() {
             </div>
           </CardContent>
         </Card>
-
         {/* Ticket Promedio */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -269,4 +252,3 @@ export default function InvoiceStatsCards() {
     </div>
   )
 }
-

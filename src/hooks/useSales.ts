@@ -1,7 +1,6 @@
 // src/hooks/useSales.ts
 import { useState, useEffect, useCallback } from "react"
 import type { SaleOrder, SalesStats, SalesSummary, SaleOrderState, TimeRange } from "@/types/sales"
-
 // Hook para órdenes de venta
 interface UseSaleOrdersParams {
   range: TimeRange
@@ -11,7 +10,6 @@ interface UseSaleOrdersParams {
   journalId?: number
   salespersonId?: number
 }
-
 interface UseSaleOrdersReturn {
   data: SaleOrder[]
   loading: boolean
@@ -19,7 +17,6 @@ interface UseSaleOrdersReturn {
   totalPages: number
   refetch: () => void
 }
-
 export function useSaleOrders({
   range,
   state,
@@ -32,30 +29,23 @@ export function useSaleOrders({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalPages, setTotalPages] = useState(1)
-
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-
       const params = new URLSearchParams({
         range,
         state,
         page: page.toString(),
         limit: limit.toString()
       })
-
       if (journalId) params.append("journal_id", journalId.toString());
       if (salespersonId) params.append("salesperson_id", salespersonId.toString());
-
       const res = await fetch(`/api/reports/sale-orders?${params}`)
-
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json = await res.json()
-
       if (json.success) {
         setData(json.data)
         setTotalPages(json.meta?.totalPages || 1)
@@ -70,11 +60,9 @@ export function useSaleOrders({
       setLoading(false)
     }
   }, [range, state, page, limit, journalId, salespersonId])
-
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
   return {
     data,
     loading,
@@ -83,37 +71,29 @@ export function useSaleOrders({
     refetch: fetchData
   }
 }
-
 // Hook para estadísticas de ventas
 interface UseSalesStatsParams {
   range: TimeRange
 }
-
 interface UseSalesStatsReturn {
   stats: SalesStats | null
   loading: boolean
   error: string | null
   refetch: () => void
 }
-
 export function useSalesStats({ range }: UseSalesStatsParams): UseSalesStatsReturn {
   const [stats, setStats] = useState<SalesStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-
       const res = await fetch(`/api/reports/sales-stats?range=${range}`)
-
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json = await res.json()
-
       if (json.success) {
         setStats(json.data)
       } else {
@@ -126,11 +106,9 @@ export function useSalesStats({ range }: UseSalesStatsParams): UseSalesStatsRetu
       setLoading(false)
     }
   }, [range])
-
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
   return {
     stats,
     loading,
@@ -138,26 +116,20 @@ export function useSalesStats({ range }: UseSalesStatsParams): UseSalesStatsRetu
     refetch: fetchData
   }
 }
-
 // Hook para resumen de ventas
 export function useSalesSummary({ range }: UseSalesStatsParams) {
   const [summary, setSummary] = useState<SalesSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-
       const res = await fetch(`/api/reports/sales-summary?range=${range}`)
-
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json = await res.json()
-
       if (json.success) {
         setSummary(json.data)
       } else {
@@ -170,11 +142,9 @@ export function useSalesSummary({ range }: UseSalesStatsParams) {
       setLoading(false)
     }
   }, [range])
-
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
   return {
     summary,
     loading,

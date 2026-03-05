@@ -1,16 +1,13 @@
 // src/components/dashboard/overview/ProductsOverview.tsx
 "use client"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Package, TrendingUp, Hash } from "lucide-react"
 import { usePOSTopProducts } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
 import Link from "next/link"
-
 export default function ProductsOverview() {
   const { data, loading } = usePOSTopProducts('today', 5)
-
   if (loading) {
     return (
       <Card>
@@ -25,10 +22,8 @@ export default function ProductsOverview() {
       </Card>
     )
   }
-
   const totalQty = data.reduce((sum, p) => sum + p.quantity_sold, 0)
   const totalAmount = data.reduce((sum, p) => sum + p.total_amount, 0)
-
   return (
     <Link href="/dashboard/products">
       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -69,4 +64,3 @@ export default function ProductsOverview() {
     </Link>
   )
 }
-

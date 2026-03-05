@@ -1,16 +1,13 @@
 // src/components/dashboard/overview/InvoicingOverview.tsx
 "use client"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FileText, DollarSign, CheckCircle, Clock } from "lucide-react"
 import { useInvoiceStats } from "@/hooks/useInvoices"
 import { formatCurrency } from "@/utils/chartUtils"
 import Link from "next/link"
-
 export default function InvoicingOverview() {
   const { data: stats, loading } = useInvoiceStats('month')
-
   if (loading) {
     return (
       <Card>
@@ -25,9 +22,7 @@ export default function InvoicingOverview() {
       </Card>
     )
   }
-
   const paymentRate = stats && stats.totalAmount > 0 ? (stats.totalPaid / stats.totalAmount) * 100 : 0
-
   return (
     <Link href="/dashboard/invoicing">
       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -80,4 +75,3 @@ export default function InvoicingOverview() {
     </Link>
   )
 }
-

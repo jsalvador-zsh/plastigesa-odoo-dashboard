@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-muted text-muted-foreground flex flex-col items-center justify-center px-4">
@@ -20,7 +19,6 @@ export default function Home() {
             <li>🤝 Colaboración entre áreas y equipos</li>
             <li>🎯 Integración a base de datos</li>
           </ul>
-
           <div className="flex gap-4 pt-4">
             <Link href="/sign-in">
               <Button className="cursor-pointer">
@@ -29,7 +27,6 @@ export default function Home() {
             </Link>
           </div>
         </div>
-
         {/* Imagen del dashboard */}
         <div className="rounded-lg overflow-hidden border shadow-md">
           <Image
@@ -43,7 +40,6 @@ export default function Home() {
           />
         </div>
       </section>
-
       {/* Carrusel de logos */}
       <section className="w-full py-10 border-t">
         <div className="text-center pb-6">
@@ -58,7 +54,6 @@ export default function Home() {
           <Image src="/logos/vercel.svg" alt="Vercel" width={20} height={20} style={{ height: '20', width: '40' }} />
         </div>
       </section>
-
       {/* Footer */}
       <footer className="py-8 text-sm text-muted-foreground text-center border-t w-full">
         Dashboard conectado a Odoo — Desarrollado con ❤️ en Next.js

@@ -1,21 +1,18 @@
 // src/hooks/useLatestPurchases.ts
 import { useState, useEffect, useCallback } from "react"
 import type { LatestPurchase, TimeRange } from "@/types/purchases"
-
 interface UseLatestPurchasesParams {
   limit?: number
   range?: TimeRange
   mode?: 'period' | 'recent' // 'period' usa filtro de período, 'recent' muestra las más recientes
   journalId?: number
 }
-
 interface UseLatestPurchasesReturn {
   data: LatestPurchase[]
   loading: boolean
   error: string | null
   refetch: () => void
 }
-
 export function useLatestPurchases({
   limit = 10,
   range = "month",
@@ -25,31 +22,23 @@ export function useLatestPurchases({
   const [data, setData] = useState<LatestPurchase[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-
       const params = new URLSearchParams({
         limit: limit.toString(),
         mode
       })
-
       if (journalId) params.append('journal_id', journalId.toString());
-
       if (mode === 'period') {
         params.append('range', range)
       }
-
       const res = await fetch(`/api/reports/latest-purchases?${params}`)
-
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-
       const json = await res.json()
-
       if (json.success) {
         setData(json.data)
       } else {
@@ -62,11 +51,9 @@ export function useLatestPurchases({
       setLoading(false)
     }
   }, [limit, range, mode, journalId])
-
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
   return {
     data,
     loading,

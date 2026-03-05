@@ -6,7 +6,6 @@ import POSStatsCards from "@/components/dashboard/sales/POSStatsCards"
 import POSOrdersTable from "@/components/dashboard/sales/POSOrdesrsTabel"
 import POSHourlySalesChart from "@/components/dashboard/sales/POSHourlySalesChart"
 import POSTopProductsChart from "@/components/dashboard/products/POSTopProductsChart"
-
 export default function DashboardPage() {
   return (
     <SidebarProvider>
@@ -22,8 +21,6 @@ export default function DashboardPage() {
             <POSTopProductsChart />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-
-
             </div>
             <POSOrdersTable />
           </div>

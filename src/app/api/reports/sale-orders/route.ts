@@ -2,14 +2,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { SalesService } from "@/services/salesService"
 import type { TimeRange, SaleOrderState } from "@/types/sales"
-
 function validateTimeRange(range: string | null): TimeRange {
   if (range === "month" || range === "quarter" || range === "year") {
     return range
   }
   return "month"
 }
-
 function validateState(state: string | null): SaleOrderState | 'all' {
   if (state === "draft" || state === "sent" || state === "sale" ||
     state === "done" || state === "cancel" || state === "all") {
@@ -17,32 +15,24 @@ function validateState(state: string | null): SaleOrderState | 'all' {
   }
   return "all"
 }
-
 function validatePage(page: string | null): number {
   const parsed = parseInt(page || "1", 10)
   return parsed > 0 ? parsed : 1
 }
-
 function validateLimit(limit: string | null): number {
   const parsed = parseInt(limit || "10", 10)
   return [10, 20, 50, 100].includes(parsed) ? parsed : 10
 }
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-
     const range = validateTimeRange(searchParams.get("range"))
     const state = validateState(searchParams.get("state"))
     const page = validatePage(searchParams.get("page"))
     const limit = validateLimit(searchParams.get("limit"))
     const journalId = searchParams.get("journal_id") ? parseInt(searchParams.get("journal_id")!, 10) : undefined
     const salespersonId = searchParams.get("salesperson_id") ? parseInt(searchParams.get("salesperson_id")!, 10) : undefined
-
-    console.log("Sale orders API called:", { range, state, page, limit, journalId, salespersonId })
-
     const result = await SalesService.getSaleOrders(range, state, page, limit, journalId, salespersonId)
-
     const response = {
       success: true,
       data: result.data,
@@ -53,9 +43,7 @@ export async function GET(req: NextRequest) {
         state_filter: state
       }
     }
-
     return NextResponse.json(response)
-
   } catch (error) {
     console.error("Error fetching sale orders:", error)
     return NextResponse.json(

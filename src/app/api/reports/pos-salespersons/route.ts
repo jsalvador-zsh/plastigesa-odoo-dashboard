@@ -1,18 +1,13 @@
 // app/api/reports/pos-salespersons/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { POSService } from "@/services/posService"
-
 export async function GET(req: NextRequest) {
   try {
-    console.log("POS salespersons list API called")
-    
     const salespersonList = await POSService.getSalespersonList()
-    
     return NextResponse.json({
       success: true,
       data: salespersonList
     })
-    
   } catch (error) {
     console.error("Error fetching POS salespersons:", error)
     return NextResponse.json(

@@ -1,5 +1,4 @@
 "use client"
-
 import {
   Bell,
   CreditCard,
@@ -31,23 +30,18 @@ import {
 } from "@/components/ui/sidebar"
 import { UserButton, useUser, useClerk } from "@clerk/nextjs"
 import Link from "next/link"
-
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { user } = useUser()
   const { signOut, openUserProfile } = useClerk()
-
   // Si no hay usuario, no renderizar nada
   if (!user) return null
-
   const handleSignOut = () => {
     signOut()
   }
-
   const handleOpenProfile = () => {
     openUserProfile()
   }
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -122,14 +116,11 @@ export function NavUser() {
     </SidebarMenu>
   )
 }
-
 // Versión recomendada usando UserButton nativo con menú personalizado
 export function NavUserWithClerkButton() {
   const { isMobile } = useSidebar()
   const { user } = useUser()
-  
   if (!user) return null
-  
   return (
     <SidebarMenu>
       <SidebarMenuItem>

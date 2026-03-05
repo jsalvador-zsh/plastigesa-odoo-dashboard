@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import { 
   Card, 
@@ -12,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils"
 import { TrendingUpIcon, TrendingDownIcon, TrophyIcon } from "lucide-react"
-
 interface SalesmanPerformance {
   name: string
   sales: number
@@ -20,17 +18,14 @@ interface SalesmanPerformance {
   customers: number
   avgTicket: number
 }
-
 export default function SalesPerformanceTable() {
   const [data, setData] = useState<SalesmanPerformance[]>([])
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch("/api/reports/sales-team-stats")
         const json = await res.json()
-        
         if (json.success) {
           setData(json.data.salesmenRanking)
         }
@@ -40,10 +35,8 @@ export default function SalesPerformanceTable() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [])
-
   if (loading) {
     return (
       <Card>
@@ -61,18 +54,14 @@ export default function SalesPerformanceTable() {
       </Card>
     )
   }
-
   // Calcular promedios para comparación
   const avgSales = data.reduce((sum, item) => sum + item.sales, 0) / data.length
   const avgTicketOverall = data.reduce((sum, item) => sum + item.avgTicket, 0) / data.length
-
   const getPerformanceBadge = (value: number, average: number, isHigherBetter: boolean = true) => {
     const isAboveAverage = isHigherBetter ? value > average : value < average
-    
     if (Math.abs(value - average) / average < 0.1) {
       return <Badge variant="outline">Promedio</Badge>
     }
-    
     return (
       <Badge variant={isAboveAverage ? "default" : "outline"} className={isAboveAverage ? "bg-green-100 text-green-800 border-green-300" : ""}>
         {isAboveAverage ? (
@@ -89,14 +78,12 @@ export default function SalesPerformanceTable() {
       </Badge>
     )
   }
-
   const getRanking = (index: number) => {
     if (index === 0) return <TrophyIcon className="size-4 text-yellow-500" />
     if (index === 1) return <TrophyIcon className="size-4 text-gray-400" />
     if (index === 2) return <TrophyIcon className="size-4 text-orange-500" />
     return <span className="text-muted-foreground">#{index + 1}</span>
   }
-
   return (
     <Card>
       <CardHeader>
@@ -172,7 +159,6 @@ export default function SalesPerformanceTable() {
             </tbody>
           </table>
         </div>
-        
         {/* Resumen estadístico */}
         <div className="mt-6 pt-4 border-t border-border">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">

@@ -1,6 +1,5 @@
 // src/components/sales/ConversionFunnelChart.tsx
 "use client"
-
 import { useState } from "react"
 import {
   Card,
@@ -28,15 +27,12 @@ import {
   Filter,
   Flag
 } from "lucide-react"
-
 import type { TimeRange } from "@/types/sales"
 import { useSalesSummary } from "@/hooks/useSales"
 import { formatCurrency, RANGE_OPTIONS, getCurrentPeriodDescription } from "@/utils/chartUtils"
-
 export default function ConversionFunnelChart() {
   const [range, setRange] = useState<TimeRange>("month")
   const { summary, loading, error, refetch } = useSalesSummary({ range })
-
   if (loading || !summary) {
     return (
       <Card className="@container/card">
@@ -63,7 +59,6 @@ export default function ConversionFunnelChart() {
       </Card>
     )
   }
-
   if (error) {
     return (
       <Card className="@container/card">
@@ -84,7 +79,6 @@ export default function ConversionFunnelChart() {
       </Card>
     )
   }
-
   const totalOpportunities = summary.quotations.count + summary.sales.count + summary.conversion.lost
   const stages = [
     {
@@ -120,9 +114,7 @@ export default function ConversionFunnelChart() {
       percentage: totalOpportunities > 0 ? (summary.sales.states.done / totalOpportunities) * 100 : 0
     }
   ]
-
   const maxCount = Math.max(...stages.map(s => s.count))
-
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -136,7 +128,6 @@ export default function ConversionFunnelChart() {
               Pipeline de ventas para {getCurrentPeriodDescription(range).toLowerCase()}
             </CardDescription>
           </div>
-          
           <div className="flex items-center gap-4">
             <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
               <SelectTrigger className="w-40">
@@ -150,14 +141,12 @@ export default function ConversionFunnelChart() {
                 ))}
               </SelectContent>
             </Select>
-            
             <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-6">
         {/* Métricas generales */}
         <div className="grid grid-cols-2 @md/card:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
@@ -178,13 +167,11 @@ export default function ConversionFunnelChart() {
             <div className="text-xs text-muted-foreground">Perdidas</div>
           </div>
         </div>
-
         {/* Embudo visual */}
         <div className="space-y-4">
           {stages.map((stage, index) => {
             const Icon = stage.icon
             const widthPercentage = maxCount > 0 ? (stage.count / maxCount) * 100 : 0
-            
             return (
               <div key={stage.name} className="relative">
                 <div className="flex items-center gap-4 mb-2">
@@ -211,7 +198,6 @@ export default function ConversionFunnelChart() {
                     </div>
                   </div>
                 </div>
-                
                 {/* Barra visual del embudo */}
                 <div className="ml-14">
                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
@@ -221,7 +207,6 @@ export default function ConversionFunnelChart() {
                     />
                   </div>
                 </div>
-
                 {/* Línea conectora entre etapas */}
                 {index < stages.length - 1 && (
                   <div className="ml-14 mt-2 mb-2">
@@ -232,7 +217,6 @@ export default function ConversionFunnelChart() {
             )
           })}
         </div>
-
         {/* Estadísticas adicionales */}
         <div className="border-t pt-4">
           <div className="grid grid-cols-1 @md/card:grid-cols-3 gap-4 text-sm">

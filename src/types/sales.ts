@@ -1,7 +1,5 @@
 // src/types/sales.ts
-
 import { TimeRange } from './dashboard'
-
 export interface SaleOrder {
   id: number
   name: string // Número de cotización/orden
@@ -14,14 +12,12 @@ export interface SaleOrder {
   validity_date?: string
   commitment_date?: string
 }
-
 export type SaleOrderState = 
   | 'draft'     // Borrador
   | 'sent'      // Cotización enviada
   | 'sale'      // Orden de venta (confirmada)
   | 'done'      // Finalizada
   | 'cancel'    // Cancelada
-
 export interface SalesStats {
   totalQuotations: number
   confirmedSales: number
@@ -32,7 +28,6 @@ export interface SalesStats {
   avgSaleAmount: number
   period: string
 }
-
 export interface SalesQueryParams {
   range?: TimeRange
   state?: SaleOrderState | 'all'
@@ -40,7 +35,6 @@ export interface SalesQueryParams {
   limit?: string
   salesperson?: string
 }
-
 export interface SalesSummary {
   quotations: {
     count: number
@@ -63,14 +57,12 @@ export interface SalesSummary {
     lost: number
   }
 }
-
 export interface SalesEvolutionData {
   period: number
   total_orders: number
   total_amount: number
   avg_ticket: number
 }
-
 export interface TicketEvolutionData {
   period: number
   avg_ticket: number
@@ -78,6 +70,5 @@ export interface TicketEvolutionData {
   min_ticket: number
   max_ticket: number
 }
-
 // Reutilizar el tipo TimeRange
 export type { TimeRange } from './dashboard'

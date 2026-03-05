@@ -1,5 +1,4 @@
 // src/utils/errorHandler.ts
-
 export enum ErrorType {
   DATABASE = "DATABASE_ERROR",
   VALIDATION = "VALIDATION_ERROR", 
@@ -7,14 +6,12 @@ export enum ErrorType {
   AUTHENTICATION = "AUTH_ERROR",
   UNKNOWN = "UNKNOWN_ERROR"
 }
-
 export interface AppError {
   type: ErrorType
   message: string
   details?: any
   statusCode?: number
 }
-
 export class ErrorHandler {
   static createError(
     type: ErrorType,
@@ -29,10 +26,8 @@ export class ErrorHandler {
       statusCode
     }
   }
-
   static handleDatabaseError(error: any): AppError {
     console.error("Database error:", error)
-    
     // Mapear errores comunes de PostgreSQL
     if (error.code) {
       switch (error.code) {
@@ -66,7 +61,6 @@ export class ErrorHandler {
           )
       }
     }
-
     return this.createError(
       ErrorType.DATABASE,
       "Error de conexión a la base de datos",
@@ -74,7 +68,6 @@ export class ErrorHandler {
       500
     )
   }
-
   static handleValidationError(message: string, details?: any): AppError {
     return this.createError(
       ErrorType.VALIDATION,
@@ -83,7 +76,6 @@ export class ErrorHandler {
       400
     )
   }
-
   static handleNetworkError(error: any): AppError {
     return this.createError(
       ErrorType.NETWORK,
@@ -92,7 +84,6 @@ export class ErrorHandler {
       503
     )
   }
-
   static getUserFriendlyMessage(error: AppError): string {
     switch (error.type) {
       case ErrorType.DATABASE:
@@ -108,7 +99,6 @@ export class ErrorHandler {
     }
   }
 }
-
 // Middleware para APIs de Next.js
 export function withErrorHandling<T extends any[], R>(
   handler: (...args: T) => Promise<R>
