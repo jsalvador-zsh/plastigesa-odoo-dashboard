@@ -12,7 +12,7 @@ export interface SaleOrder {
   validity_date?: string
   commitment_date?: string
 }
-export type SaleOrderState = 
+export type SaleOrderState =
   | 'draft'     // Borrador
   | 'sent'      // Cotización enviada
   | 'sale'      // Orden de venta (confirmada)
@@ -34,6 +34,8 @@ export interface SalesQueryParams {
   page?: string
   limit?: string
   salesperson?: string
+  startDate?: string
+  endDate?: string
 }
 export interface SalesSummary {
   quotations: {

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { SalesService } from "@/services/salesService"
 import type { TimeRange, SaleOrderState } from "@/types/sales"
 function validateTimeRange(range: string | null): TimeRange {
-  if (range === "month" || range === "quarter" || range === "year") {
+  if (range === "month" || range === "quarter" || range === "year" || range === "custom") {
     return range
   }
   return "month"
@@ -32,14 +32,16 @@ export async function GET(req: NextRequest) {
     const limit = validateLimit(searchParams.get("limit"))
     const journalId = searchParams.get("journal_id") ? parseInt(searchParams.get("journal_id")!, 10) : undefined
     const salespersonId = searchParams.get("salesperson_id") ? parseInt(searchParams.get("salesperson_id")!, 10) : undefined
-    const result = await SalesService.getSaleOrders(range, state, page, limit, journalId, salespersonId)
+    const startDate = searchParams.get("start_date") || undefined
+    const endDate = searchParams.get("end_date") || undefined
+    const result = await SalesService.getSaleOrders(range, state, page, limit, journalId, salespersonId, startDate, endDate)
     const response = {
       success: true,
       data: result.data,
       meta: result.meta,
       period_info: {
         period: range,
-        description: SalesService.getPeriodDescription(range),
+        description: SalesService.getPeriodDescription(range, startDate, endDate),
         state_filter: state
       }
     }

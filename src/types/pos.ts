@@ -43,6 +43,8 @@ export interface POSQueryParams {
   page?: string
   limit?: string
   date?: string
+  startDate?: string
+  endDate?: string
 }
 export type POSOrderState = 'draft' | 'paid' | 'done' | 'invoiced' | 'cancel'
-export type POSTimeRange = 'today' | 'week' | 'month' | 'quarter' | 'year'
+export type POSTimeRange = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom'

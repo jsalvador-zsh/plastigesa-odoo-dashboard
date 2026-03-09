@@ -4,10 +4,11 @@ import type { Customer, FilterOptions, TimeRange, TopLimit } from "@/types/dashb
 export const RANGE_OPTIONS: FilterOptions<TimeRange>[] = [
   { value: "month", label: "Mes" },
   { value: "quarter", label: "Trim." },
-  { value: "year", label: "Año" }
+  { value: "year", label: "Año" },
+  { value: "custom", label: "Personalizado" }
 ]
 export function formatCurrency(
-  value: number | string | any[], 
+  value: number | string | any[],
   currency: string = "PEN"
 ): string {
   let num: number
@@ -40,7 +41,7 @@ export function getCurrentPeriodDescription(range: TimeRange): string {
       const currentQuarter = Math.ceil(currentMonth / 3)
       const quarterNames = {
         1: "Primer trimestre",
-        2: "Segundo trimestre", 
+        2: "Segundo trimestre",
         3: "Tercer trimestre",
         4: "Cuarto trimestre"
       }
@@ -71,9 +72,9 @@ export function validateChartData(data: Customer[]): boolean {
   }
   return data.every(item => {
     const hasName = typeof item.customer_name === 'string' && item.customer_name.length > 0
-    const hasAmount = typeof item.total_purchased === 'number' && 
-                     !isNaN(item.total_purchased) && 
-                     item.total_purchased >= 0
+    const hasAmount = typeof item.total_purchased === 'number' &&
+      !isNaN(item.total_purchased) &&
+      item.total_purchased >= 0
     return hasName && hasAmount
   })
 }

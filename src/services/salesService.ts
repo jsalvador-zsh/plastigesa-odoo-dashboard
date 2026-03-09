@@ -4,9 +4,14 @@ import type { QueryResult } from "pg"
 import type { SaleOrder, SalesStats, SalesSummary, SaleOrderState, TimeRange } from "@/types/sales"
 export class SalesService {
   // Obtener condición de fecha según el rango
-  static getDateCondition(range: TimeRange): string {
+  static getDateCondition(range: TimeRange, startDate?: string, endDate?: string): string {
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth() + 1
+
+    if (range === "custom" && startDate && endDate) {
+      return `so.date_order::date >= '${startDate}' AND so.date_order::date <= '${endDate}'`
+    }
+
     switch (range) {
       case "month":
         return `EXTRACT(MONTH FROM so.date_order) = ${currentMonth} 
@@ -25,7 +30,7 @@ export class SalesService {
     }
   }
   // Obtener descripción del período
-  static getPeriodDescription(range: TimeRange): string {
+  static getPeriodDescription(range: TimeRange, startDate?: string, endDate?: string): string {
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() + 1
@@ -33,6 +38,11 @@ export class SalesService {
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
+
+    if (range === "custom" && startDate && endDate) {
+      return `Desde ${startDate} hasta ${endDate}`
+    }
+
     switch (range) {
       case "month":
         return `${monthNames[currentMonth - 1]} ${currentYear}`
@@ -55,9 +65,11 @@ export class SalesService {
     page: number = 1,
     limit: number = 10,
     journalId?: number,
-    salespersonId?: number
+    salespersonId?: number,
+    startDate?: string,
+    endDate?: string
   ): Promise<{ data: SaleOrder[], meta: any }> {
-    const dateCondition = this.getDateCondition(range)
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     const offset = (page - 1) * limit
     let stateCondition = ""
     if (state !== 'all') {
@@ -200,8 +212,8 @@ export class SalesService {
     }
   }
   // Obtener estadísticas de ventas
-  static async getSalesStats(range: TimeRange): Promise<SalesStats> {
-    const dateCondition = this.getDateCondition(range)
+  static async getSalesStats(range: TimeRange, startDate?: string, endDate?: string): Promise<SalesStats> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
@@ -230,12 +242,12 @@ export class SalesService {
       totalSalesAmount: parseFloat(String(row.sales_amount) || '0'),
       avgQuotationAmount: parseFloat(String(row.avg_quotation) || '0'),
       avgSaleAmount: parseFloat(String(row.avg_sale) || '0'),
-      period: this.getPeriodDescription(range)
+      period: this.getPeriodDescription(range, startDate, endDate)
     }
   }
   // Obtener resumen de ventas
-  static async getSalesSummary(range: TimeRange): Promise<SalesSummary> {
-    const dateCondition = this.getDateCondition(range)
+  static async getSalesSummary(range: TimeRange, startDate?: string, endDate?: string): Promise<SalesSummary> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
@@ -306,8 +318,8 @@ export class SalesService {
     return summary
   }
   // Obtener cotizaciones (estados draft y sent)
-  static async getQuotations(range: TimeRange, limit: number = 10, page: number = 1) {
-    const dateCondition = this.getDateCondition(range)
+  static async getQuotations(range: TimeRange, limit: number = 10, page: number = 1, startDate?: string, endDate?: string) {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     const offset = (page - 1) * 10 // 10 por página fijo para cotizaciones
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
@@ -422,8 +434,8 @@ export class SalesService {
       }
     }
   }
-  static async getTopSalespeople(range: TimeRange, limit: number = 5) {
-    const dateCondition = this.getDateCondition(range)
+  static async getTopSalespeople(range: TimeRange, limit: number = 5, startDate?: string, endDate?: string) {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     const query = `
       SELECT 
         ru.name AS salesperson_name,
@@ -450,8 +462,8 @@ export class SalesService {
         : 0
     }))
   }
-  static async getSalesEvolution(range: TimeRange): Promise<{ data: any[] }> {
-    const dateCondition = this.getDateCondition(range)
+  static async getSalesEvolution(range: TimeRange, startDate?: string, endDate?: string): Promise<{ data: any[] }> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`
@@ -498,8 +510,8 @@ export class SalesService {
     }))
     return { data: processedData }
   }
-  static async getTicketEvolution(range: TimeRange): Promise<{ data: any[] }> {
-    const dateCondition = this.getDateCondition(range)
+  static async getTicketEvolution(range: TimeRange, startDate?: string, endDate?: string): Promise<{ data: any[] }> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     // Solo incluir vendedores específicos
     const allowedUserIds = [11, 12, 13, 37]
     const userCondition = `AND so.user_id IN (${allowedUserIds.join(', ')})`

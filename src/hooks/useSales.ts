@@ -9,6 +9,8 @@ interface UseSaleOrdersParams {
   limit: number
   journalId?: number
   salespersonId?: number
+  startDate?: string
+  endDate?: string
 }
 interface UseSaleOrdersReturn {
   data: SaleOrder[]
@@ -23,7 +25,9 @@ export function useSaleOrders({
   page,
   limit,
   journalId,
-  salespersonId
+  salespersonId,
+  startDate,
+  endDate
 }: UseSaleOrdersParams): UseSaleOrdersReturn {
   const [data, setData] = useState<SaleOrder[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,6 +45,8 @@ export function useSaleOrders({
       })
       if (journalId) params.append("journal_id", journalId.toString());
       if (salespersonId) params.append("salesperson_id", salespersonId.toString());
+      if (startDate) params.append("start_date", startDate);
+      if (endDate) params.append("end_date", endDate);
       const res = await fetch(`/api/reports/sale-orders?${params}`)
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
@@ -59,7 +65,7 @@ export function useSaleOrders({
     } finally {
       setLoading(false)
     }
-  }, [range, state, page, limit, journalId, salespersonId])
+  }, [range, state, page, limit, journalId, salespersonId, startDate, endDate])
   useEffect(() => {
     fetchData()
   }, [fetchData])
@@ -74,6 +80,8 @@ export function useSaleOrders({
 // Hook para estadísticas de ventas
 interface UseSalesStatsParams {
   range: TimeRange
+  startDate?: string
+  endDate?: string
 }
 interface UseSalesStatsReturn {
   stats: SalesStats | null
@@ -81,7 +89,7 @@ interface UseSalesStatsReturn {
   error: string | null
   refetch: () => void
 }
-export function useSalesStats({ range }: UseSalesStatsParams): UseSalesStatsReturn {
+export function useSalesStats({ range, startDate, endDate }: UseSalesStatsParams): UseSalesStatsReturn {
   const [stats, setStats] = useState<SalesStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -89,7 +97,10 @@ export function useSalesStats({ range }: UseSalesStatsParams): UseSalesStatsRetu
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch(`/api/reports/sales-stats?range=${range}`)
+      const params = new URLSearchParams({ range })
+      if (startDate) params.append("start_date", startDate)
+      if (endDate) params.append("end_date", endDate)
+      const res = await fetch(`/api/reports/sales-stats?${params}`)
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
@@ -117,7 +128,7 @@ export function useSalesStats({ range }: UseSalesStatsParams): UseSalesStatsRetu
   }
 }
 // Hook para resumen de ventas
-export function useSalesSummary({ range }: UseSalesStatsParams) {
+export function useSalesSummary({ range, startDate, endDate }: UseSalesStatsParams) {
   const [summary, setSummary] = useState<SalesSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -125,7 +136,10 @@ export function useSalesSummary({ range }: UseSalesStatsParams) {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch(`/api/reports/sales-summary?range=${range}`)
+      const params = new URLSearchParams({ range })
+      if (startDate) params.append("start_date", startDate)
+      if (endDate) params.append("end_date", endDate)
+      const res = await fetch(`/api/reports/sales-summary?${params}`)
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }

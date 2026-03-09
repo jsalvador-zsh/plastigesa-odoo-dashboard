@@ -1,6 +1,6 @@
 // src/types/dashboard.ts
 // Tipos base para parámetros comunes
-export type TimeRange = "current_month" | "month" | "quarter" | "year"
+export type TimeRange = "current_month" | "month" | "quarter" | "year" | "custom"
 export type TopLimit = "10" | "30" | "50"
 // Tipos para clientes (como vienen de la DB)
 export interface CustomerRaw {
@@ -22,6 +22,8 @@ export interface CustomerQueryParams {
   range?: TimeRange
   limit?: TopLimit
   page?: string
+  startDate?: string
+  endDate?: string
 }
 // Tipos para respuestas API
 export interface ApiResponse<T> {

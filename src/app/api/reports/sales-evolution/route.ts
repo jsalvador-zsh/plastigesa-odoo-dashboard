@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { SalesService } from "@/services/salesService"
 import type { TimeRange } from "@/types/sales"
 function validateTimeRange(range: string | null): TimeRange {
-  if (range === "month" || range === "quarter" || range === "year") {
+  if (range === "month" || range === "quarter" || range === "year" || range === "custom") {
     return range
   }
   return "month"
@@ -12,13 +12,15 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const range = validateTimeRange(searchParams.get("range"))
-    const result = await SalesService.getSalesEvolution(range)
+    const startDate = searchParams.get("start_date") || undefined
+    const endDate = searchParams.get("end_date") || undefined
+    const result = await SalesService.getSalesEvolution(range, startDate, endDate)
     const response = {
       success: true,
       data: result.data,
       period_info: {
         period: range,
-        description: SalesService.getPeriodDescription(range)
+        description: SalesService.getPeriodDescription(range, startDate, endDate)
       }
     }
     return NextResponse.json(response)

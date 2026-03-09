@@ -1,15 +1,15 @@
 // src/hooks/usePOS.ts
 import { useState, useEffect } from 'react'
-import type { 
-  POSStats, 
-  POSOrder, 
-  POSSalesPerson, 
-  POSHourlySales, 
-  POSProductRanking, 
-  POSTimeRange 
+import type {
+  POSStats,
+  POSOrder,
+  POSSalesPerson,
+  POSHourlySales,
+  POSProductRanking,
+  POSTimeRange
 } from '@/types/pos'
 // Hook para estadísticas generales de POS
-export function usePOSStats(range: POSTimeRange = 'today') {
+export function usePOSStats(range: POSTimeRange = 'today', startDate?: string, endDate?: string) {
   const [data, setData] = useState<POSStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -17,7 +17,10 @@ export function usePOSStats(range: POSTimeRange = 'today') {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/reports/pos-stats?range=${range}`)
+      const params = new URLSearchParams({ range })
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
+      const response = await fetch(`/api/reports/pos-stats?${params}`)
       const result = await response.json()
       if (!response.ok) {
         throw new Error(result.error || 'Error al obtener estadísticas')
@@ -32,7 +35,7 @@ export function usePOSStats(range: POSTimeRange = 'today') {
   }
   useEffect(() => {
     fetchStats()
-  }, [range])
+  }, [range, startDate, endDate])
   return { data, loading, error, refetch: fetchStats }
 }
 // Hook para ventas por hora
@@ -125,12 +128,16 @@ export function usePOSOrders({
   range = 'today',
   page = 1,
   limit = 10,
-  salesperson
+  salesperson,
+  startDate,
+  endDate
 }: {
   range?: POSTimeRange
   page?: number
   limit?: number
-  salesperson?: string
+  salesperson?: string,
+  startDate?: string,
+  endDate?: string
 } = {}) {
   const [data, setData] = useState<POSOrder[]>([])
   const [loading, setLoading] = useState(true)
@@ -149,6 +156,8 @@ export function usePOSOrders({
       if (salesperson && salesperson !== 'all') {
         params.append('salesperson', salesperson)
       }
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
       const response = await fetch(`/api/reports/pos-orders?${params}`)
       const result = await response.json()
       if (!response.ok) {
@@ -166,7 +175,7 @@ export function usePOSOrders({
   }
   useEffect(() => {
     fetchOrders()
-  }, [range, page, limit, salesperson])
+  }, [range, page, limit, salesperson, startDate, endDate])
   return { data, loading, error, totalPages, total, refetch: fetchOrders }
 }
 // Hook para ventas por vendedor

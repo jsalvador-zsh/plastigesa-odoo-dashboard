@@ -41,12 +41,17 @@ export interface POSProductRanking {
   avg_price: number
 }
 export type POSOrderState = 'draft' | 'paid' | 'done' | 'invoiced' | 'cancel'
-export type TimeRange = 'today' | 'week' | 'month' | 'quarter' | 'year'
+export type TimeRange = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
 export class POSService {
   // Obtener condición de fecha según el rango
-  static getDateCondition(range: TimeRange): string {
+  static getDateCondition(range: TimeRange, startDate?: string, endDate?: string): string {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+
+    if (range === "custom" && startDate && endDate) {
+      return `po.date_order::date >= '${startDate}' AND po.date_order::date <= '${endDate}'`
+    }
+
     switch (range) {
       case "today":
         const endOfDay = new Date(today)
@@ -73,12 +78,17 @@ export class POSService {
     }
   }
   // Obtener descripción del período
-  static getPeriodDescription(range: TimeRange): string {
+  static getPeriodDescription(range: TimeRange, startDate?: string, endDate?: string): string {
     const now = new Date()
     const monthNames = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
+
+    if (range === "custom" && startDate && endDate) {
+      return `Desde ${startDate} hasta ${endDate}`
+    }
+
     switch (range) {
       case "today":
         return `Hoy ${now.getDate()} de ${monthNames[now.getMonth()]}`
@@ -96,8 +106,8 @@ export class POSService {
     }
   }
   // Obtener estadísticas generales de POS
-  static async getPOSStats(range: TimeRange): Promise<POSStats> {
-    const dateCondition = this.getDateCondition(range)
+  static async getPOSStats(range: TimeRange, startDate?: string, endDate?: string): Promise<POSStats> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     const query = `
       SELECT 
         COUNT(*) as total_sales,
@@ -117,7 +127,7 @@ export class POSService {
       totalCustomers: parseInt(String(row.total_customers) || '0', 10),
       avgTicket: parseFloat(String(row.avg_ticket) || '0'),
       totalTransactions: parseInt(String(row.total_transactions) || '0', 10),
-      period: this.getPeriodDescription(range)
+      period: this.getPeriodDescription(range, startDate, endDate)
     }
   }
   // Obtener órdenes de POS con paginación
@@ -125,9 +135,11 @@ export class POSService {
     range: TimeRange,
     page: number = 1,
     limit: number = 10,
-    salesperson?: string
+    salesperson?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<{ data: POSOrder[], meta: any }> {
-    const dateCondition = this.getDateCondition(range)
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     const offset = (page - 1) * limit
     let salespersonCondition = ""
     if (salesperson && salesperson !== 'all') {
@@ -192,8 +204,8 @@ export class POSService {
     }
   }
   // Obtener ventas por vendedor
-  static async getSalesByPerson(range: TimeRange): Promise<POSSalesPerson[]> {
-    const dateCondition = this.getDateCondition(range)
+  static async getSalesByPerson(range: TimeRange, startDate?: string, endDate?: string): Promise<POSSalesPerson[]> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     const query = `
       SELECT 
         COALESCE(po.custom_selection, 'Sin asignar') AS salesperson,
@@ -251,8 +263,8 @@ export class POSService {
     return hoursData
   }
   // Obtener productos más vendidos
-  static async getTopProducts(range: TimeRange, limit: number = 10): Promise<POSProductRanking[]> {
-    const dateCondition = this.getDateCondition(range)
+  static async getTopProducts(range: TimeRange, limit: number = 10, startDate?: string, endDate?: string): Promise<POSProductRanking[]> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     const query = `
       SELECT 
         pt.name AS product_name,
@@ -290,8 +302,8 @@ export class POSService {
     return result.rows.map(row => String(row.custom_selection))
   }
   // Obtener estadísticas de un vendedor específico o todos
-  static async getPOSStatsByVendor(range: TimeRange, salesperson?: string): Promise<POSStats> {
-    const dateCondition = this.getDateCondition(range)
+  static async getPOSStatsByVendor(range: TimeRange, salesperson?: string, startDate?: string, endDate?: string): Promise<POSStats> {
+    const dateCondition = this.getDateCondition(range, startDate, endDate)
     let salespersonCondition = ""
     if (salesperson && salesperson !== 'all') {
       salespersonCondition = `AND po.custom_selection = '${salesperson}'`
@@ -317,7 +329,7 @@ export class POSService {
       totalCustomers: parseInt(String(row.total_customers) || '0', 10),
       avgTicket: parseFloat(String(row.avg_ticket) || '0'),
       totalTransactions: parseInt(String(row.total_transactions) || '0', 10),
-      period: this.getPeriodDescription(range) + vendorInfo
+      period: this.getPeriodDescription(range, startDate, endDate) + vendorInfo
     }
   }
 }

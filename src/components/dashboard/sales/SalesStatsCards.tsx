@@ -1,12 +1,12 @@
 // src/components/sales/SalesStatsCards.tsx
 "use client"
 import { useState } from "react"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import {
   Select,
@@ -31,9 +31,21 @@ import {
 import type { TimeRange } from "@/types/sales"
 import { useSalesStats } from "@/hooks/useSales"
 import { formatCurrency, RANGE_OPTIONS } from "@/utils/chartUtils"
+import { DatePickerWithRange } from "@/components/dashboard/overview/DatePickerWithRange"
+import { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 export default function SalesStatsCards() {
   const [range, setRange] = useState<TimeRange>("month")
-  const { stats, loading, error, refetch } = useSalesStats({ range })
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date()
+  })
+
+  const { stats, loading, error, refetch } = useSalesStats({
+    range,
+    startDate: range === 'custom' && dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+    endDate: range === 'custom' && dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
+  })
   if (loading) {
     return (
       <div className="space-y-4">
@@ -91,7 +103,13 @@ export default function SalesStatsCards() {
             Resumen de cotizaciones y ventas para {stats.period}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row items-center gap-2">
+          {range === 'custom' && (
+            <DatePickerWithRange
+              date={dateRange}
+              onDateChange={setDateRange}
+            />
+          )}
           <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Período" />
@@ -104,7 +122,7 @@ export default function SalesStatsCards() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
+          <Button onClick={refetch} variant="outline" size="icon" disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
