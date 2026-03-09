@@ -35,6 +35,9 @@ import {
 } from "lucide-react"
 import type { TimeRange } from "@/types/sales"
 import { formatCurrency } from "@/utils/chartUtils"
+import { DatePickerWithRange } from "@/components/dashboard/overview/DatePickerWithRange"
+import { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 interface EvolutionData {
   period: number
   total_orders: number
@@ -44,18 +47,26 @@ interface EvolutionData {
 const RANGE_OPTIONS = [
   { value: "month", label: "Por día (mes actual)" },
   { value: "quarter", label: "Por semana (trimestre actual)" },
-  { value: "year", label: "Por mes (año actual)" }
+  { value: "year", label: "Por mes (año actual)" },
+  { value: "custom", label: "Rango personalizado" }
 ]
 export default function SalesEvolutionChart() {
   const [data, setData] = useState<EvolutionData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [range, setRange] = useState<TimeRange>("month")
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date()
+  })
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch(`/api/reports/sales-evolution?range=${range}`)
+      const params = new URLSearchParams({ range })
+      if (range === 'custom' && dateRange?.from) params.append('start_date', format(dateRange.from, 'yyyy-MM-dd'))
+      if (range === 'custom' && dateRange?.to) params.append('end_date', format(dateRange.to, 'yyyy-MM-dd'))
+      const res = await fetch(`/api/reports/sales-evolution?${params}`)
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
@@ -74,11 +85,12 @@ export default function SalesEvolutionChart() {
   }
   useEffect(() => {
     fetchData()
-  }, [range])
+  }, [range, dateRange])
   // Formatear el label del eje X según el rango de tiempo
   const formatXAxis = (period: number) => {
     if (range === "month") return `Día ${period}`
     if (range === "quarter") return `Sem ${period}`
+    if (range === "custom") return `Día ${period}`
     return new Date(0, period - 1).toLocaleString('es', { month: 'short' })
   }
   // Custom tooltip para el gráfico
@@ -158,10 +170,16 @@ export default function SalesEvolutionChart() {
               Evolución de Ventas
             </CardTitle>
             <CardDescription>
-              Ventas confirmadas por {range === 'month' ? 'día' : range === 'quarter' ? 'semana' : 'mes'}
+              Ventas confirmadas {range === 'custom' ? 'en el rango seleccionado' : `por ${range === 'month' ? 'día' : range === 'quarter' ? 'semana' : 'mes'}`}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row items-center gap-2">
+            {range === 'custom' && (
+              <DatePickerWithRange
+                date={dateRange}
+                onDateChange={setDateRange}
+              />
+            )}
             <Select value={range} onValueChange={(value) => setRange(value as TimeRange)}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Período" />
@@ -174,7 +192,7 @@ export default function SalesEvolutionChart() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={fetchData} variant="outline" size="default" disabled={loading}>
+            <Button onClick={fetchData} variant="outline" size="icon" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
@@ -187,20 +205,20 @@ export default function SalesEvolutionChart() {
               <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis 
-                  dataKey="period" 
+                <XAxis
+                  dataKey="period"
                   fontSize={12}
                   tickMargin={10}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={formatXAxis}
                 />
-                <YAxis 
+                <YAxis
                   fontSize={12}
                   tickMargin={10}
                   axisLine={false}

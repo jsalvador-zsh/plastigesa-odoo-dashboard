@@ -70,7 +70,7 @@ export function usePOSHourlySales(date?: string) {
   return { data, loading, error, refetch: fetchHourlySales }
 }
 // Hook para productos más vendidos
-export function usePOSTopProducts(range: POSTimeRange = 'today', limit: number = 10) {
+export function usePOSTopProducts(range: POSTimeRange = 'today', limit: number = 10, startDate?: string, endDate?: string) {
   const [data, setData] = useState<POSProductRanking[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -78,7 +78,10 @@ export function usePOSTopProducts(range: POSTimeRange = 'today', limit: number =
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/reports/pos-top-products?range=${range}&limit=${limit}`)
+      const params = new URLSearchParams({ range, limit: limit.toString() })
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
+      const response = await fetch(`/api/reports/pos-top-products?${params.toString()}`)
       const result = await response.json()
       if (!response.ok) {
         throw new Error(result.error || 'Error al obtener productos más vendidos')
@@ -93,7 +96,7 @@ export function usePOSTopProducts(range: POSTimeRange = 'today', limit: number =
   }
   useEffect(() => {
     fetchTopProducts()
-  }, [range, limit])
+  }, [range, limit, startDate, endDate])
   return { data, loading, error, refetch: fetchTopProducts }
 }
 // Hook para lista de vendedores
@@ -179,7 +182,7 @@ export function usePOSOrders({
   return { data, loading, error, totalPages, total, refetch: fetchOrders }
 }
 // Hook para ventas por vendedor
-export function usePOSSalesByPerson(range: POSTimeRange = 'today') {
+export function usePOSSalesByPerson(range: POSTimeRange = 'today', startDate?: string, endDate?: string) {
   const [data, setData] = useState<POSSalesPerson[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -187,7 +190,10 @@ export function usePOSSalesByPerson(range: POSTimeRange = 'today') {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/reports/pos-sales-by-person?range=${range}`)
+      const params = new URLSearchParams({ range })
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
+      const response = await fetch(`/api/reports/pos-sales-by-person?${params}`)
       const result = await response.json()
       if (!response.ok) {
         throw new Error(result.error || 'Error al obtener ventas por vendedor')
@@ -202,11 +208,11 @@ export function usePOSSalesByPerson(range: POSTimeRange = 'today') {
   }
   useEffect(() => {
     fetchSalesByPerson()
-  }, [range])
+  }, [range, startDate, endDate])
   return { data, loading, error, refetch: fetchSalesByPerson }
 }
 // Hook para estadísticas de vendedor específico
-export function usePOSVendorStats(range: POSTimeRange = 'today', salesperson?: string) {
+export function usePOSVendorStats(range: POSTimeRange = 'today', salesperson?: string, startDate?: string, endDate?: string) {
   const [data, setData] = useState<POSStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -218,6 +224,8 @@ export function usePOSVendorStats(range: POSTimeRange = 'today', salesperson?: s
       if (salesperson && salesperson !== 'all') {
         params.append('salesperson', salesperson)
       }
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
       const response = await fetch(`/api/reports/pos-vendor-stats?${params}`)
       const result = await response.json()
       if (!response.ok) {
@@ -233,6 +241,6 @@ export function usePOSVendorStats(range: POSTimeRange = 'today', salesperson?: s
   }
   useEffect(() => {
     fetchVendorStats()
-  }, [range, salesperson])
+  }, [range, salesperson, startDate, endDate])
   return { data, loading, error, refetch: fetchVendorStats }
 }

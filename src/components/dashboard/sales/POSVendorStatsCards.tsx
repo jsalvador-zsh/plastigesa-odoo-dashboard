@@ -1,12 +1,12 @@
 // src/components/dashboard/sales/POSVendorStatsCards.tsx
 "use client"
 import { useState } from "react"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import {
   Select,
@@ -33,24 +33,38 @@ import {
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSVendorStats, usePOSSalespersons } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
+import { DatePickerWithRange } from "@/components/dashboard/overview/DatePickerWithRange"
+import { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
   { value: "month", label: "Este mes" },
   { value: "quarter", label: "Este trimestre" },
-  { value: "year", label: "Este año" }
+  { value: "year", label: "Este año" },
+  { value: "custom", label: "Personalizado" }
 ]
 interface POSVendorStatsCardsProps {
   selectedVendor?: string
   onVendorChange?: (vendor: string) => void
 }
-export default function POSVendorStatsCards({ 
-  selectedVendor, 
-  onVendorChange 
+export default function POSVendorStatsCards({
+  selectedVendor,
+  onVendorChange
 }: POSVendorStatsCardsProps) {
   const [range, setRange] = useState<POSTimeRange>("today")
   const [vendor, setVendor] = useState<string>(selectedVendor || "all")
-  const { data: stats, loading, error, refetch } = usePOSVendorStats(range, vendor)
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date()
+  })
+
+  const { data: stats, loading, error, refetch } = usePOSVendorStats(
+    range,
+    vendor,
+    range === 'custom' && dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+    range === 'custom' && dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
+  )
   const { data: salespersons } = usePOSSalespersons()
   const handleVendorChange = (value: string) => {
     setVendor(value)
@@ -119,6 +133,12 @@ export default function POSVendorStatsCards({
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {range === 'custom' && (
+            <DatePickerWithRange
+              date={dateRange}
+              onDateChange={setDateRange}
+            />
+          )}
           {/* Selector de vendedor */}
           <Select value={vendor} onValueChange={handleVendorChange}>
             <SelectTrigger className="w-48">
@@ -147,7 +167,7 @@ export default function POSVendorStatsCards({
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={refetch} variant="outline" size="default" disabled={loading}>
+          <Button onClick={refetch} variant="outline" size="icon" disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
@@ -236,8 +256,8 @@ export default function POSVendorStatsCards({
             </p>
             <div className="mt-2">
               <Badge variant="outline" className="text-xs">
-                {stats.totalCustomers > 0 ? 
-                  `${((stats.totalCustomers / stats.totalSales) * 100).toFixed(1)}% identificados` : 
+                {stats.totalCustomers > 0 ?
+                  `${((stats.totalCustomers / stats.totalSales) * 100).toFixed(1)}% identificados` :
                   'Sin datos'
                 }
               </Badge>

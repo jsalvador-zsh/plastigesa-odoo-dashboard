@@ -56,6 +56,8 @@ import type { Journal } from "@/types/invoice"
 import type { TimeRange, SaleOrderState } from "@/types/sales"
 import { useSaleOrders } from "@/hooks/useSales"
 import { formatCurrency, RANGE_OPTIONS } from "@/utils/chartUtils"
+import { DatePickerWithRange } from "@/components/dashboard/overview/DatePickerWithRange"
+import { DateRange } from "react-day-picker"
 const LIMIT_OPTIONS = [
   { value: "10", label: "10 filas" },
   { value: "20", label: "20 filas" },
@@ -78,6 +80,10 @@ const SALESWOMEN = [
 ]
 export default function SalesOrdersTable() {
   const [range, setRange] = useState<TimeRange>("month")
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date()
+  })
   const [state, setState] = useState<SaleOrderState | 'all'>("all")
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -102,7 +108,9 @@ export default function SalesOrdersTable() {
     page,
     limit,
     journalId,
-    salespersonId
+    salespersonId,
+    startDate: range === 'custom' && dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+    endDate: range === 'custom' && dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
   })
   // Memoizar datos filtrados
   const filteredData = useMemo(() => {
@@ -144,6 +152,8 @@ export default function SalesOrdersTable() {
       })
       if (journalId) params.append("journal_id", journalId.toString());
       if (salespersonId) params.append("salesperson_id", salespersonId.toString());
+      if (range === 'custom' && dateRange?.from) params.append("start_date", format(dateRange.from, 'yyyy-MM-dd'));
+      if (range === 'custom' && dateRange?.to) params.append("end_date", format(dateRange.to, 'yyyy-MM-dd'));
       const res = await fetch(`/api/reports/sale-orders?${params}`)
       const json = await res.json()
       if (json.success) {
@@ -191,6 +201,11 @@ export default function SalesOrdersTable() {
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ]
     switch (range) {
+      case "custom":
+        if (dateRange?.from && dateRange?.to) {
+          return `${format(dateRange.from, "dd/MM/yyyy")} - ${format(dateRange.to, "dd/MM/yyyy")}`
+        }
+        return "Rango personalizado"
       case "month":
         return `${monthNames[currentMonth - 1]} ${currentYear}`
       case "quarter":
@@ -276,8 +291,17 @@ export default function SalesOrdersTable() {
                 {state !== 'all' && ` - ${STATE_OPTIONS.find(s => s.value === state)?.label}`}
               </CardDescription>
             </div>
-            <div className="flex flex-col gap-2 @md/main:items-end">
-              <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-col gap-2 @md/main:items-end w-full">
+              <div className="flex gap-2 flex-wrap items-center">
+                {range === 'custom' && (
+                  <DatePickerWithRange
+                    date={dateRange}
+                    onDateChange={(d) => {
+                      setDateRange(d);
+                      setPage(1);
+                    }}
+                  />
+                )}
                 <Select value={range} onValueChange={handleRangeChange}>
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Período" />

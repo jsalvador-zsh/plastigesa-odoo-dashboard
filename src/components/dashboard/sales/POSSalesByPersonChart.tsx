@@ -1,12 +1,12 @@
 // src/components/dashboard/pos/POSSalesByPersonChart.tsx
 "use client"
 import { useState } from "react"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import {
   Select,
@@ -43,12 +43,16 @@ import {
 import type { POSTimeRange } from "@/types/pos"
 import { usePOSSalesByPerson } from "@/hooks/usePOS"
 import { formatCurrency } from "@/utils/chartUtils"
+import { DatePickerWithRange } from "@/components/dashboard/overview/DatePickerWithRange"
+import { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 const POS_RANGE_OPTIONS = [
   { value: "today", label: "Hoy" },
   { value: "week", label: "Esta semana" },
   { value: "month", label: "Este mes" },
   { value: "quarter", label: "Este trimestre" },
-  { value: "year", label: "Este año" }
+  { value: "year", label: "Este año" },
+  { value: "custom", label: "Personalizado" }
 ]
 // Colores para vendedores
 const SALESPERSON_COLORS = [
@@ -74,7 +78,16 @@ interface ChartDataItem {
 }
 export default function POSSalesByPersonChart() {
   const [range, setRange] = useState<POSTimeRange>("today")
-  const { data, loading, error, refetch } = usePOSSalesByPerson(range)
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date()
+  })
+
+  const { data, loading, error, refetch } = usePOSSalesByPerson(
+    range,
+    range === 'custom' && dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+    range === 'custom' && dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
+  )
   // Calcular totales para porcentajes y promedios
   const totalSales = data.reduce((sum, item) => sum + item.total_sales, 0)
   const totalAmount = data.reduce((sum, item) => sum + item.total_amount, 0)
@@ -84,8 +97,8 @@ export default function POSSalesByPersonChart() {
     ...item,
     percentage: item.percentage, // Ya viene calculado del servicio
     color: SALESPERSON_COLORS[index % SALESPERSON_COLORS.length],
-    short_name: item.salesperson.length > 12 
-      ? item.salesperson.substring(0, 12) + "..." 
+    short_name: item.salesperson.length > 12
+      ? item.salesperson.substring(0, 12) + "..."
       : item.salesperson
   }))
   // Encontrar el mejor vendedor
@@ -278,14 +291,14 @@ export default function POSSalesByPersonChart() {
                         layout="horizontal"
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                        <XAxis 
+                        <XAxis
                           type="number"
                           stroke="#64748b"
                           fontSize={12}
                           tickLine={false}
                           axisLine={false}
                         />
-                        <YAxis 
+                        <YAxis
                           type="category"
                           dataKey="short_name"
                           stroke="#64748b"
@@ -297,22 +310,22 @@ export default function POSSalesByPersonChart() {
                         <Tooltip content={<CustomTooltip />} />
                         {/* Línea de referencia para el promedio */}
                         {totalSales > 0 && (
-                          <ReferenceLine 
-                            x={totalSales / data.length} 
-                            stroke="#ef4444" 
+                          <ReferenceLine
+                            x={totalSales / data.length}
+                            stroke="#ef4444"
                             strokeDasharray="5 5"
                             strokeWidth={1}
                           />
                         )}
-                        <Bar 
-                          dataKey="total_sales" 
+                        <Bar
+                          dataKey="total_sales"
                           radius={[0, 4, 4, 0]}
                           stroke="rgba(0,0,0,0.1)"
                           strokeWidth={1}
                         >
                           {chartData.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
+                            <Cell
+                              key={`cell-${index}`}
                               fill={entry.color}
                             />
                           ))}
@@ -347,7 +360,7 @@ export default function POSSalesByPersonChart() {
                           )}
                         </div>
                         {/* Indicador de color */}
-                        <div 
+                        <div
                           className="w-4 h-4 rounded-full flex-shrink-0"
                           style={{ backgroundColor: SALESPERSON_COLORS[index % SALESPERSON_COLORS.length] }}
                         />
@@ -357,8 +370,8 @@ export default function POSSalesByPersonChart() {
                           <p className="font-medium text-sm truncate" title={person.salesperson}>
                             {person.salesperson}
                           </p>
-                          <Badge 
-                            variant={index === 0 ? "default" : "outline"} 
+                          <Badge
+                            variant={index === 0 ? "default" : "outline"}
                             className="text-xs"
                           >
                             {person.percentage.toFixed(1)}%
