@@ -116,7 +116,7 @@ export function useSalesStats({ range, startDate, endDate }: UseSalesStatsParams
     } finally {
       setLoading(false)
     }
-  }, [range])
+  }, [range, startDate, endDate])
   useEffect(() => {
     fetchData()
   }, [fetchData])
@@ -155,7 +155,7 @@ export function useSalesSummary({ range, startDate, endDate }: UseSalesStatsPara
     } finally {
       setLoading(false)
     }
-  }, [range])
+  }, [range, startDate, endDate])
   useEffect(() => {
     fetchData()
   }, [fetchData])
