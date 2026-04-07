@@ -40,6 +40,16 @@ export interface POSProductRanking {
   total_amount: number
   avg_price: number
 }
+export interface POSCustomerSearchResult {
+  id: number
+  name: string
+  vat: string | null
+}
+export interface POSCustomerTopProduct {
+  product_name: string
+  quantity_sold: number
+  total_amount: number
+}
 export type POSOrderState = 'draft' | 'paid' | 'done' | 'invoiced' | 'cancel'
 export type TimeRange = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
 export class POSService {
@@ -331,5 +341,47 @@ export class POSService {
       totalTransactions: parseInt(String(row.total_transactions) || '0', 10),
       period: this.getPeriodDescription(range, startDate, endDate) + vendorInfo
     }
+  }
+
+  // Buscar clientes en POS
+  static async searchCustomers(query: string): Promise<POSCustomerSearchResult[]> {
+    const dbQuery = `
+      SELECT id, name, vat
+      FROM res_partner
+      WHERE name ILIKE $1 OR vat ILIKE $1
+      ORDER BY name
+      LIMIT 10
+    `
+    const result = await db.query(dbQuery, [`%${query}%`])
+    return result.rows.map(row => ({
+      id: parseInt(String(row.id), 10),
+      name: String(row.name || ''),
+      vat: row.vat ? String(row.vat) : null
+    }))
+  }
+
+  // Obtener productos más comprados por un cliente específico
+  static async getTopProductsByCustomer(customerId: number, limit: number = 5): Promise<POSCustomerTopProduct[]> {
+    const query = `
+      SELECT 
+        pt.name AS product_name,
+        SUM(pol.qty) as quantity_sold,
+        SUM(pol.price_subtotal_incl) as total_amount
+      FROM pos_order_line pol
+      JOIN pos_order po ON pol.order_id = po.id
+      JOIN product_product pp ON pol.product_id = pp.id
+      JOIN product_template pt ON pp.product_tmpl_id = pt.id
+      WHERE po.partner_id = $1
+        AND po.state IN ('paid', 'done', 'invoiced')
+      GROUP BY pt.id, pt.name
+      ORDER BY quantity_sold DESC
+      LIMIT $2
+    `
+    const result = await db.query(query, [customerId, limit])
+    return result.rows.map(row => ({
+      product_name: String(row.product_name || ''),
+      quantity_sold: parseFloat(String(row.quantity_sold) || '0'),
+      total_amount: parseFloat(String(row.total_amount) || '0')
+    }))
   }
 }
